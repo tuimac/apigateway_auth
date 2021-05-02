@@ -12,7 +12,7 @@ class App extends React.Component {
       <BrowserRouter>
         <Switch>
           <PublicRoute restricted={false} component={Login} path="/" exact />
-          <PublicRoute restricted={true} component={Login} path="/login" exact />
+          <PublicRoute restricted={false} component={Login} path="/login" exact />
           <PrivateRoute component={Home} path="/home" exact />
         </Switch>
       </BrowserRouter>

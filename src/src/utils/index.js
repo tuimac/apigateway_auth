@@ -1,12 +1,12 @@
 import * as AmazonCognitoIdentity from 'amazon-cognito-identity-js';
 import { TOKEN_KEY, USER_POOL_ID, APP_CLIENT_ID } from '../environment';
+import { Redirect } from 'react-router-dom';
 
 function authCognito(name, password) {
   var authDetails = new AmazonCognitoIdentity.AuthenticationDetails({
     Username: name,
     Password: password
   });
-  console.log(USER_POOL_ID);
 
   var userPool = new AmazonCognitoIdentity.CognitoUserPool({
     UserPoolId: USER_POOL_ID,
@@ -16,21 +16,22 @@ function authCognito(name, password) {
     Username: name,
     Pool: userPool
   });
-  cognitoUser.authenticateUser(authDetails, {
-    onSuccess: function(result) {
-      return result.getAccessToken().getJwtToken();
-    },
-    onFailure: function(err) {
-      console.log('cognito error');
-      console.log(err);
-      return err;
-    }
+  return new Promise(function(success, failure) {
+    cognitoUser.authenticateUser(authDetails, {
+      onSuccess: success,
+      onFailure: failure
+    })
   });
 }
 
-export const login = (username, pw) => {
-  var token = authCognito(username, pw);
-  localStorage.setItem(TOKEN_KEY, token);
+export const login = async (username, pw) => {
+  var token = await authCognito(username, pw);
+  console.log(token);
+  if(token === '') {
+    return <Redirect to="/login" />;
+  } else {
+    localStorage.setItem(TOKEN_KEY, token);
+  }
 }
 
 export const logout = () => {
