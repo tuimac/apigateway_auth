@@ -1,16 +1,11 @@
 import * as AmazonCognitoIdentity from 'amazon-cognito-identity-js';
-const USER_POOL_ID = 'ap-northeast-1_nih6Kl3Kk';
-const APP_CLIENT_ID = '7qjmtlplrg5kdb9f87mqhu2kv2';
-const TOKEN_KEY = '';
+import { TOKEN_KEY, USER_POOL_ID, APP_CLIENT_ID } from '../environment';
 
 function authCognito(name, password) {
-  console.log('username');
-  console.log(name)
   var authDetails = new AmazonCognitoIdentity.AuthenticationDetails({
     Username: name,
     Password: password
   });
-  console.log('USER_POOL_ID');
   console.log(USER_POOL_ID);
 
   var userPool = new AmazonCognitoIdentity.CognitoUserPool({
@@ -26,6 +21,8 @@ function authCognito(name, password) {
       return result.getAccessToken().getJwtToken();
     },
     onFailure: function(err) {
+      console.log('cognito error');
+      console.log(err);
       return err;
     }
   });
