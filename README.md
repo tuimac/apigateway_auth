@@ -5,5 +5,5 @@ Implementation of cognito authentication infrastructure and try to access with t
 That infrastructure is created by cloudformation. You have to be careful of creating cognito UserPool. If you want to create UserPool as a username and password authentication infrastructure, you set `false` to [UserPoolClient] - [GenerateSecret]. Because, you set `true`, you can't authenticate from browser.(I don't know exactly why...)
 
 ```
-aws cloudformation create-stack --stack-name cognito_s3 --region <Your region code> --capabilities CAPABILITY_NAMED_IAM --template-body file://infra/template.yml
+aws cloudformation create-stack --stack-name cognitoS3 --region <Your region code> --capabilities CAPABILITY_NAMED_IAM --template-body file://infra/template.yml
 ```
