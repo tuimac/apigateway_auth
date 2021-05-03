@@ -18,6 +18,6 @@ RUN apk update && \
     git config --global user.email "tuimac.devadm01@gmail.com" && \
     git config --global user.name "tuimac" && \
     cd src && \
-    npm install amazon-cognito-identity-js bootstrap react-router-dom
+    npm install amazon-cognito-identity-js bootstrap react-router-dom aws-sdk
 
 ENTRYPOINT ["/root/entrypoint.sh"]
