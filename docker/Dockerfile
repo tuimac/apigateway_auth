@@ -13,8 +13,8 @@ RUN apk update && \
     rm /etc/vim/vimrc && \
     curl -L https://raw.githubusercontent.com/tuimac/tools/master/vim/vimrc -o /etc/vim/vimrc && \
     curl -L https://raw.githubusercontent.com/tuimac/tools/master/linux/bashrc/.bashrc_node_docker -o /root/.bashrc && \
-    git clone https://github.com/tuimac/apigateway_auth && \
-    cd /root/apigateway_auth && \
+    git clone https://github.com/tuimac/cognito_s3 && \
+    cd /root/cognito_s3 && \
     git config --global user.email "tuimac.devadm01@gmail.com" && \
     git config --global user.name "tuimac" && \
     cd src && \
