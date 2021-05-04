@@ -13,10 +13,14 @@ function authCognito(name, password) {
     UserPoolId: USER_POOL_ID,
     ClientId: APP_CLIENT_ID
   });
+  console.log('userPool');
+  console.log(userPool);
   var cognitoUser = new AmazonCognitoIdentity.CognitoUser({
     Username: name,
     Pool: userPool
   });
+  console.log('cognitoUser');
+  console.log(cognitoUser);
   return new Promise(function(success, failure) {
     cognitoUser.authenticateUser(authDetails, {
       onSuccess: success,
@@ -30,13 +34,17 @@ function getSts(jwtToken) {
   AWS.config.credentials = new AWS.CognitoIdentityCredentials({
     IdentityPoolId: ID_POOL_ID,
     Logins: {
-      `cognito-idp.${AWS.config.region}.amazonaws.com/${data.UserPoolId}`: jwtToken
+      [`cognito-idp.${AWS.config.region}.amazonaws.com/${USER_POOL_ID}`]: jwtToken
     }
   });
+  console.log('STS credentials');
+  console.log(AWS.config.credentials);
 }
 
 export const login = async (username, pw) => {
   var jwt = await authCognito(username, pw);
+  console.log('jwt');
+  console.log(jwt);
   getSts(jwt['idToken']['jwtToken']);
 }
 
