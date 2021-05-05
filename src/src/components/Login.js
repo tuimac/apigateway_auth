@@ -1,5 +1,6 @@
 import React from 'react';
 import { login } from '../utils';
+import { Redirect } from 'react-router-dom';
 
 class Login extends React.Component {
   
@@ -21,6 +22,8 @@ class Login extends React.Component {
 
   handleLogin() {
     login(this.state.username, this.state.password);
+    for
+    this.props.history.push('/home');
   }
 
   render() {

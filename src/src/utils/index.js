@@ -1,33 +1,6 @@
 import * as AmazonCognitoIdentity from 'amazon-cognito-identity-js';
-import { TOKEN_KEY, USER_POOL_ID, APP_CLIENT_ID, ID_POOL_ID, REGION } from '../environment';
+import { USER_POOL_ID, APP_CLIENT_ID, ID_POOL_ID, REGION } from '../environment';
 import AWS from 'aws-sdk';
-
-function authCognito(name, password) {
-  var authDetails = new AmazonCognitoIdentity.AuthenticationDetails({
-    Username: name,
-    Password: password
-  });
-  console.log('authDetails');
-  console.log(authDetails); 
-  var userPool = new AmazonCognitoIdentity.CognitoUserPool({
-    UserPoolId: USER_POOL_ID,
-    ClientId: APP_CLIENT_ID
-  });
-  console.log('userPool');
-  console.log(userPool);
-  var cognitoUser = new AmazonCognitoIdentity.CognitoUser({
-    Username: name,
-    Pool: userPool
-  });
-  console.log('cognitoUser');
-  console.log(cognitoUser);
-  return new Promise(function(success, failure) {
-    cognitoUser.authenticateUser(authDetails, {
-      onSuccess: success,
-      onFailure: failure
-    })
-  });
-}
 
 function getSts(jwtToken) {
   AWS.config.region = REGION;
@@ -41,20 +14,55 @@ function getSts(jwtToken) {
   console.log(AWS.config.credentials);
 }
 
-export const login = async (username, pw) => {
-  var jwt = await authCognito(username, pw);
+export const login = (username, password) => {
+  var authDetails = new AmazonCognitoIdentity.AuthenticationDetails({
+    Username: username,
+    Password: password
+  });
+  console.log('authDetails');
+  console.log(authDetails); 
+  var userPool = new AmazonCognitoIdentity.CognitoUserPool({
+    UserPoolId: USER_POOL_ID,
+    ClientId: APP_CLIENT_ID
+  });
+  console.log('userPool');
+  console.log(userPool);
+  var cognitoUser = new AmazonCognitoIdentity.CognitoUser({
+    Username: username,
+    Pool: userPool
+  });
+  console.log('cognitoUser');
+  console.log(cognitoUser);
+  var jwt = new Promise(function(success, failure) {
+    cognitoUser.authenticateUser(authDetails, {
+      onSuccess: success,
+      onFailure: failure
+    })
+  });
   console.log('jwt');
   console.log(jwt);
-  getSts(jwt['idToken']['jwtToken']);
 }
 
 export const logout = () => {
-  localStorage.removeItem(TOKEN_KEY);
+   var userPool = new AmazonCognitoIdentity.CognitoUserPool({
+    UserPoolId: USER_POOL_ID,
+    ClientId: APP_CLIENT_ID
+  });
+  var user = userPool.getCurrentUser();
+  if(user !== null){
+    user.signOut();
+  }
 }
 
 export const isLogin = () => {
-  if (localStorage.getItem(TOKEN_KEY)) {
+  var userPool = new AmazonCognitoIdentity.CognitoUserPool({
+    UserPoolId: USER_POOL_ID,
+    ClientId: APP_CLIENT_ID
+  });
+  var user = userPool.getCurrentUser();
+  if(user === null){
+    return false;
+  }else {
     return true;
   }
-  return false;
 }

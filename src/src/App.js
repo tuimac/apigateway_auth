@@ -11,7 +11,7 @@ class App extends React.Component {
     return (
       <BrowserRouter>
         <Switch>
-          <PublicRoute restricted={false} component={Login} path="/" exact />
+          <PublicRoute restricted={false} component={Home} path="/" exact />
           <PublicRoute restricted={false} component={Login} path="/login" exact />
           <PrivateRoute component={Home} path="/home" exact />
         </Switch>
