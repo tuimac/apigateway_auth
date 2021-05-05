@@ -16,6 +16,7 @@ RUN apk update && \
     git clone https://github.com/tuimac/cognito_s3 && \
     cd /root/cognito_s3 && \
     curl -L https://raw.githubusercontent.com/tuimac/tools/master/git/hook/cognito_s3/pre-commit -o .git/hooks/pre-commit && \
+    chmod +x .git/hooks/pre-commit && \
     git config --global user.email "tuimac.devadm01@gmail.com" && \
     git config --global user.name "tuimac" && \
     cd src && \
