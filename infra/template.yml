@@ -89,6 +89,9 @@ Resources:
                   - "cognito-sync:*"
                 Resource:
                   - "*"
+      Tags:
+        - Key: !Ref NameTagKey
+          Value: !Ref NameTagValue
 
   AuthenticatedRole:
     Type: AWS::IAM::Role
@@ -121,6 +124,9 @@ Resources:
                   - "cognito-identity:*"
                 Resource:
                   - "*"
+      Tags:
+        - Key: !Ref NameTagKey
+          Value: !Ref NameTagValue
 
   RoleAttachment:
     Type: AWS::Cognito::IdentityPoolRoleAttachment
@@ -156,10 +162,51 @@ Resources:
                   - "s3:*"
                 Resource:
                   - "*"
+      Tags:
+        - Key: !Ref NameTagKey
+          Value: !Ref NameTagValue
 
-  UserPoolGroup:
-    Type: AWS::Cognito::UserPoolGroup
+  # Create Cognito User and Group
+  CreateCognitoUserAndGroupLambdaRole:
+    Type: AWS::IAM::Role
     Properties:
-      GroupName: !Ref NameTagValue
-      UserPoolId: !Ref UserPool
-      RoleArn: !GetAtt S3AccessRole.Arn
+      RoleName: CreateCognitoUserAndGroupLambda
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: /
+      Policies:
+        - PolicyName: CreateCognitoUserAndGroupLambda
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "cognito-idp:*"
+                Resource:
+                  - "*"
+      Tags:
+        - Key: !Ref NameTagKey
+          Value: !Ref NameTagValue
+
+#  CreateCognitoUserAndGroupLambda:
+#    Type: AWS::Lambda::Function
+#    Properties:
+#      Code:
+#        ZipFile: |
+#
+#      Runtime: python3.8
+#      Timeout: 90
+#      Handler: index.handler
+#      MemorySize: 128
+#      FunctionName: CreateCognitoUserAndGroup
+#      Role: !GetAtt CreateCognitoUserAndGroupRole.Arn
+#      Tags:
+#        - Key: !Ref NameTagKey
+#          Value: !Ref NameTagValue
