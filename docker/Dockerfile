@@ -7,7 +7,7 @@ ADD entrypoint.sh /root/entrypoint.sh
 RUN apk update && \
     apk upgrade && \
     apk add --no-cache bash git icu-dev icu-libs vim nodejs nodejs-npm curl jq tree ncurses python3 py3-pip && \
-    pip3 install awscli && \
+    pip3 install awscli boto3 && \
     mkdir /etc/vim/backup && \
     mkdir /etc/vim/undo && \
     rm /etc/vim/vimrc && \

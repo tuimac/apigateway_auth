@@ -2,6 +2,7 @@
 
 import boto3
 import sys
+import json
 
 USERPOOLID = ''
 CLIENTID = ''
@@ -10,8 +11,24 @@ NAME = ''
 PASSWORD = ''
 
 def create_environment():
-    def create__iam_role():
+    def create_iam_role():
+        # IAM Policy
         policy = {
+            'Version': '2012-10-17',
+            'Statement': [
+                {
+                    'Effect': 'Allow',
+                    'Action': [
+                        's3:Get*',
+                        's3:List*'
+                    ],
+                    'Resource': '*'
+                }
+            ]
+        }            
+
+        # Trust relationship
+        trust_relationship = {
             'Version': '2012-10-17',
             'Statement': [
                 {
@@ -31,14 +48,27 @@ def create_environment():
                 }
             ]
         }
-        policy['Statement'][0]['Condition']['StringEquals']['cognito-identity.amazonaws.com:aud'] = IDPOOLID
-        policy = json.dumps(policy)
-        iam = boto3.client('iam') 
-        response = iam.create-role(
+        trust_relationship['Statement'][0]['Condition']['StringEquals']['cognito-identity.amazonaws.com:aud'] = IDPOOLID
+        trust_relationship = json.dumps(trust_relationship)
+
+        # Create IAM Role
+        iam = boto3.client('iam')
+        policy_arn = iam.create_policy(
+            PolicyName = NAME + '_' + USERPOOLID,
+            PolicyDocument = policy
+        )['Policy']['Arn']
+
+        role_arn = iam.create_role(
             RoleName = NAME + '_' + USERPOOLID,
-            AssumeRolePolicyDocument = policy,
+            AssumeRolePolicyDocument = trust_relationship,
+        )['Role']['Arn']
+
+        iam.attach_role_policy(
+            RoleName = role_arn,
+            PolicyArn = policy_arn
         )
-        return response['Role']['Arn']
+
+        return role_arn
 
     def create_user(cognito):
         response = cognito.sign_up(
@@ -83,5 +113,4 @@ def create_environment():
     add_user_to_group(cognito) 
 
 if __name__ == '__main__':
-    args = sys.argv[1]
     create_environment()

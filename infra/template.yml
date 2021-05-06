@@ -62,6 +62,11 @@ Resources:
   UnauthenticatedRole:
     Type: AWS::IAM::Role
     Properties:
+      RoleName: !Join
+        - ""
+        - - !Ref NameTagValue
+          - '-'
+          - Unauthenticated
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -96,6 +101,11 @@ Resources:
   AuthenticatedRole:
     Type: AWS::IAM::Role
     Properties:
+      RoleName: !Join
+        - ""
+        - - !Ref NameTagValue
+          - '-'
+          - Authenticated
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
