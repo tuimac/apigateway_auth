@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 
 import boto3
-import sys
 import json
+import os
 
-USERPOOLID = ''
-CLIENTID = ''
-IDPOOLID = ''
-NAME = ''
-PASSWORD = ''
+USERPOOLID = os.environ.get('USERPOOLID')
+CLIENTID = os.environ.get('CLIENTID')
+IDPOOLID = os.environ.get('IDPOOLID')
+NAME = os.environ.get('NAME')
+PASSWORD = os.environ.get('PASSWORD')
 
 def create_environment():
     def create_iam_role():
