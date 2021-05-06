@@ -136,36 +136,6 @@ Resources:
         unauthenticated: !GetAtt UnauthenticatedRole.Arn
         authenticated: !GetAtt AuthenticatedRole.Arn
 
-  S3AccessRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: 2012-10-17
-        Statement:
-          - Effect: Allow
-            Action: "sts:AssumeRoleWithWebIdentity"
-            Principal:
-              Federated: cognito-identity.amazonaws.com
-            Condition:
-              StringEquals:
-                "cognito-identity.amazonaws.com:aud": !Ref IdentityPool
-              ForAnyValue:StringLike:
-                "cognito-identity.amazonaws.com:amr": authenticated
-      Path: /
-      Policies:
-        - PolicyName: S3AccessPolicy
-          PolicyDocument:
-            Version: 2012-10-17
-            Statement:
-              - Effect: Allow
-                Action:
-                  - "s3:*"
-                Resource:
-                  - "*"
-      Tags:
-        - Key: !Ref NameTagKey
-          Value: !Ref NameTagValue
-
   # Create Cognito User and Group
   CreateCognitoUserAndGroupLambdaRole:
     Type: AWS::IAM::Role
