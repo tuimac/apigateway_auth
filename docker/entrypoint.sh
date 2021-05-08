@@ -1,8 +1,11 @@
 #!/bin/bash
 
-$LOG='/root/development.log'
+#$LOG='/root/development.log'
+#
+#while true; do
+#    cat /sys/class/net >> $LOG 2>&1
+#    sleep 10
+#done
 
-while true; do
-    cat /sys/class/net >> $LOG 2>&1
-    sleep 10
-done
+cd /root/cognito_s3/src
+npm start
