@@ -1,6 +1,5 @@
 import React from 'react';
 import { login } from '../utils';
-import { Redirect } from 'react-router-dom';
 import Button from 'react-bootstrap/Button';
 import Card from 'react-bootstrap/Card';
 
@@ -23,10 +22,13 @@ class Login extends React.Component {
   }
 
   handleLogin() {
-    var auth = login(this.state.email, this.state.password);
-    console.log('auth');
-    console.log(auth);
-    this.props.history.push('/home');
+    var isLoginSuccess = login(this.state.email, this.state.password);
+    console.log(isLoginSuccess);
+    if(isLoginSuccess === true) {
+      this.props.history.push('/home');
+    } else {
+      alert('Login failed!!')
+    };
   }
 
   render() {
@@ -39,7 +41,7 @@ class Login extends React.Component {
           <Card.Body>
             <input type="text" name="email" placeholder="Enter your Email address" value={ this.state.email } onChange={ this.handleChange } /><br/><br/>
             <input type="password" name="password" placeholder="Enter password" value={ this.state.password } onChange={ this.handleChange } /><br/><br/>
-            <Button value="Login" onClick={ this.handleLogin } class="btn btn-primary">Login</Button><br/><br/>
+            <Button value="Login" onClick={ this.handleLogin } className="btn btn-primary">Login</Button><br/><br/>
             <a href="/signup">Signup page</a>
           </Card.Body>
         </Card>

@@ -2,6 +2,11 @@ import * as AmazonCognitoIdentity from 'amazon-cognito-identity-js';
 import { USER_POOL_ID, APP_CLIENT_ID, ID_POOL_ID, REGION } from '../environment';
 import AWS from 'aws-sdk';
 
+var userPool = new AmazonCognitoIdentity.CognitoUserPool({
+  UserPoolId: USER_POOL_ID,
+  ClientId: APP_CLIENT_ID
+});
+
 function getSts(jwtToken) {
   AWS.config.region = REGION;
   AWS.config.credentials = new AWS.CognitoIdentityCredentials({
@@ -10,8 +15,6 @@ function getSts(jwtToken) {
       [`cognito-idp.${AWS.config.region}.amazonaws.com/${USER_POOL_ID}`]: jwtToken
     }
   });
-  console.log('STS credentials');
-  console.log(AWS.config.credentials);
 }
 
 export const login = (email, password) => {
@@ -19,35 +22,27 @@ export const login = (email, password) => {
     Username: email,
     Password: password
   });
-  console.log('authDetails');
-  console.log(authDetails); 
-  var userPool = new AmazonCognitoIdentity.CognitoUserPool({
-    UserPoolId: USER_POOL_ID,
-    ClientId: APP_CLIENT_ID
-  });
-  console.log('userPool');
-  console.log(userPool);
   var cognitoUser = new AmazonCognitoIdentity.CognitoUser({
     Username: email,
     Pool: userPool
   });
-  console.log('cognitoUser');
-  console.log(cognitoUser);
-  var jwt = new Promise(function(success, failure) {
+  new Promise(function(success, failure) {
     cognitoUser.authenticateUser(authDetails, {
-      onSuccess: success,
-      onFailure: failure
+      onSuccess: (result) => {
+        console.log('authenticateUser() successed result')
+        console.log(result);
+        return true;
+      },
+      onFailure: (err) => {
+        console.log('authenticateUser() failed result')
+        console.log(err);
+        return false;
+      }
     })
   });
-  console.log('jwt');
-  console.log(jwt);
 }
 
 export const logout = () => {
-   var userPool = new AmazonCognitoIdentity.CognitoUserPool({
-    UserPoolId: USER_POOL_ID,
-    ClientId: APP_CLIENT_ID
-  });
   var user = userPool.getCurrentUser();
   if(user !== null){
     user.signOut();
@@ -55,10 +50,6 @@ export const logout = () => {
 }
 
 export const isLogin = () => {
-  var userPool = new AmazonCognitoIdentity.CognitoUserPool({
-    UserPoolId: USER_POOL_ID,
-    ClientId: APP_CLIENT_ID
-  });
   var user = userPool.getCurrentUser();
   if(user === null){
     return false;
@@ -68,10 +59,6 @@ export const isLogin = () => {
 }
 
 export const signup = (email, password) => {
-  var userPool = new AmazonCognitoIdentity.CognitoUserPool({
-    UserPoolId: USER_POOL_ID,
-    ClientId: APP_CLIENT_ID
-  });
   var attributeList = []
   var attributeEmail = new AmazonCognitoIdentity.CognitoUserAttribute({
     Name: 'email',
@@ -81,8 +68,8 @@ export const signup = (email, password) => {
   userPool.signUp(email, password, attributeList, null, function(err, result){
     if(err) {
       console.log(err);
-      return;
+      return false;
     }
-    console.log(result.user.getUsername());
+    return true;
   })
 }

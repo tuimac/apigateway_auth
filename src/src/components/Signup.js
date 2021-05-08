@@ -1,6 +1,6 @@
 import React from 'react';
 import { signup } from '../utils';
-import { Redirect } from 'react-router-dom';
+import Verify from './verification/Verify'
 import Button from 'react-bootstrap/Button';
 import Card from 'react-bootstrap/Card';
 
@@ -23,8 +23,15 @@ class Login extends React.Component {
   }
 
   handleSignup() {
-    signup(this.state.email, this.state.password);
-    this.props.history.push('/login');
+    var isSignupSuccess = signup(this.state.email, this.state.password);
+    console.log('isSignupSuccess');
+    if(isSignupSuccess === true) {
+      return(
+        <Verify />
+      );
+    } else {
+      alert('SignUp was failed!!')
+    }
   }
 
   render() {
