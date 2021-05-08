@@ -7,7 +7,7 @@ Parameters:
 
   NameTagValue:
     Type: String
-    Default: cognito_s3
+    Default: cognitoS3
 
 Resources:
   # cognito
@@ -17,9 +17,9 @@ Resources:
       UserPoolName: !Ref NameTagValue
       AdminCreateUserConfig:
         AllowAdminCreateUserOnly: false
-      AliasAttributes:
-        - email
       UsernameAttributes:
+        - email
+      AutoVerifiedAttributes:
         - email
       Policies:
         PasswordPolicy:
@@ -34,9 +34,6 @@ Resources:
           DeveloperOnlyAttribute: false
           Mutable: true
           Required: true
-      UserPoolTags:
-        - Key: !Ref NameTagKey
-          value: !Ref NameTagValue
 
   UserPoolClient:
     Type: AWS::Cognito::UserPoolClient
