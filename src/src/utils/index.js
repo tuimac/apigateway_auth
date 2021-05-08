@@ -26,7 +26,7 @@ export const login = (email, password) => {
     Username: email,
     Pool: userPool
   });
-  new Promise(function(success, failure) {
+  new Promise(function() {
     cognitoUser.authenticateUser(authDetails, {
       onSuccess: (result) => {
         console.log('authenticateUser() successed result')
@@ -56,20 +56,4 @@ export const isLogin = () => {
   }else {
     return true;
   }
-}
-
-export const signup = (email, password) => {
-  var attributeList = []
-  var attributeEmail = new AmazonCognitoIdentity.CognitoUserAttribute({
-    Name: 'email',
-    Value: email
-  });
-  attributeList.push(attributeEmail);
-  userPool.signUp(email, password, attributeList, null, function(err, result){
-    if(err) {
-      console.log(err);
-      return false;
-    }
-    return true;
-  })
 }

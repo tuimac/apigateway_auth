@@ -32,7 +32,7 @@ class Verify extends React.Component {
             <h1>Verification</h1>
           </Card.Header>
           <Card.Body>
-            <input type="text" name="email" placeholder="Enter your Email" value={ this.state.code } onChange={ this.handleChange } /><br/><br/>
+            <input type="email" name="email" placeholder="Enter your Email" value={ this.state.code } onChange={ this.handleChange } /><br/><br/>
             <Button value="signup" onClick={ this.handleVerify } class="btn btn-primary">Verify</Button>
           </Card.Body>  
         </Card>
