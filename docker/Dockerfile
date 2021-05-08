@@ -8,7 +8,8 @@ RUN apk update && \
     apk upgrade && \
     apk add --no-cache bash git icu-dev icu-libs vim nodejs nodejs-npm curl jq tree ncurses python3 py3-pip && \
     pip3 install awscli boto3 && \
-    echo -en '[default]\nregion = ap-northeast-1' && \
+    mkdir ~/.aws && \
+    echo -en '[default]\nregion = ap-northeast-1' > .aws/config && \
     mkdir /etc/vim/backup && \
     mkdir /etc/vim/undo && \
     rm /etc/vim/vimrc && \
