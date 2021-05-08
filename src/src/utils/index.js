@@ -14,9 +14,9 @@ function getSts(jwtToken) {
   console.log(AWS.config.credentials);
 }
 
-export const login = (username, password) => {
+export const login = (email, password) => {
   var authDetails = new AmazonCognitoIdentity.AuthenticationDetails({
-    Username: username,
+    Username: email,
     Password: password
   });
   console.log('authDetails');
@@ -28,7 +28,7 @@ export const login = (username, password) => {
   console.log('userPool');
   console.log(userPool);
   var cognitoUser = new AmazonCognitoIdentity.CognitoUser({
-    Username: username,
+    Username: email,
     Pool: userPool
   });
   console.log('cognitoUser');
@@ -65,4 +65,24 @@ export const isLogin = () => {
   }else {
     return true;
   }
+}
+
+export const signup = (email, password) => {
+  var userPool = new AmazonCognitoIdentity.CognitoUserPool({
+    UserPoolId: USER_POOL_ID,
+    ClientId: APP_CLIENT_ID
+  });
+  var attributeList = []
+  var attributeEmail = new AmazonCognitoIdentity.CognitoUserAttribute({
+    Name: 'email',
+    Value: email
+  });
+  attributeList.push(attributeEmail);
+  userPool.signUp(email, password, attributeList, null, function(err, result){
+    if(err) {
+      console.log(err);
+      return;
+    }
+    console.log(result.user.getUsername());
+  })
 }
