@@ -19,6 +19,8 @@ Resources:
         AllowAdminCreateUserOnly: false
       AliasAttributes:
         - email
+      UsernameAttributes:
+        - email
       Policies:
         PasswordPolicy:
           MinimumLength: 8
@@ -32,6 +34,9 @@ Resources:
           DeveloperOnlyAttribute: false
           Mutable: true
           Required: true
+      UserPoolTags:
+        - Key: !Ref NameTagKey
+          value: !Ref NameTagValue
 
   UserPoolClient:
     Type: AWS::Cognito::UserPoolClient
@@ -145,48 +150,3 @@ Resources:
       Roles:
         unauthenticated: !GetAtt UnauthenticatedRole.Arn
         authenticated: !GetAtt AuthenticatedRole.Arn
-
-  # Create Cognito User and Group
-  CreateCognitoUserAndGroupLambdaRole:
-    Type: AWS::IAM::Role
-    Properties:
-      RoleName: CreateCognitoUserAndGroupLambda
-      AssumeRolePolicyDocument:
-        Version: 2012-10-17
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service:
-                - lambda.amazonaws.com
-            Action:
-              - sts:AssumeRole
-      Path: /
-      Policies:
-        - PolicyName: CreateCognitoUserAndGroupLambda
-          PolicyDocument:
-            Version: 2012-10-17
-            Statement:
-              - Effect: Allow
-                Action:
-                  - "cognito-idp:*"
-                Resource:
-                  - "*"
-      Tags:
-        - Key: !Ref NameTagKey
-          Value: !Ref NameTagValue
-
-#  CreateCognitoUserAndGroupLambda:
-#    Type: AWS::Lambda::Function
-#    Properties:
-#      Code:
-#        ZipFile: |
-#
-#      Runtime: python3.8
-#      Timeout: 90
-#      Handler: index.handler
-#      MemorySize: 128
-#      FunctionName: CreateCognitoUserAndGroup
-#      Role: !GetAtt CreateCognitoUserAndGroupRole.Arn
-#      Tags:
-#        - Key: !Ref NameTagKey
-#          Value: !Ref NameTagValue
