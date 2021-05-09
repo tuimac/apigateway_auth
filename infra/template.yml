@@ -21,7 +21,6 @@ Resources:
         - email
       AutoVerifiedAttributes:
         - email
-      EmailVerificationType: Code
       EmailVerificationSubject: Verified by code
       EmailVerificationMessage: Your verification code is {####}
       Policies:
