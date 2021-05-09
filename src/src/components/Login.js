@@ -1,7 +1,6 @@
 import React from 'react';
 import * as AmazonCognitoIdentity from 'amazon-cognito-identity-js';
 import { USER_POOL_ID, APP_CLIENT_ID } from '../environment';
-import { login } from '../utils';
 import Button from 'react-bootstrap/Button';
 import Card from 'react-bootstrap/Card';
 

@@ -1,27 +1,23 @@
 import React from 'react';
-import * as AmazonCognitoIdentity from 'amazon-cognito-identity-js';
-import { USER_POOL_ID, APP_CLIENT_ID } from '../../environment';
 import Button from 'react-bootstrap/Button';
 import Card from 'react-bootstrap/Card';
 
 class Verify extends React.Component {
   
-  constructor() {
-    super();
+  constructor(props) {
+    super(props);
     this.state = {
       code: '',
+      email: ''
     };
-    this.handleVerify = this.handleVerify.bind(this);
     this.handleChange = this.handleChange.bind(this);
+    this.state.email = this.props.email;
   }
 
   handleChange({ target }) {
     this.setState({
       [target.name]: target.value
     });
-  }
-
-  handleVerify() {
   }
 
   render() {
@@ -32,9 +28,9 @@ class Verify extends React.Component {
             <h1>Verification</h1>
           </Card.Header>
           <Card.Body>
-            <input type="email" name="email" placeholder="Enter your Email" value={ this.state.code } onChange={ this.handleChange } /><br/><br/>
-            <Button value="signup" onClick={ this.handleVerify } className="btn btn-primary">Verify</Button>
-          </Card.Body>  
+            <input type="text" name="code" placeholder="Enter the code" value={ this.state.code } onChange={ this.handleChange } /><br/><br/>
+            <Button value="verification" onClick={() => { this.props.handleVerify(this.state) }} className="btn btn-primary">Verify</Button><br/><br/>
+          </Card.Body>
         </Card>
       </div>
     );

@@ -1,7 +1,4 @@
 import React from 'react';
-import * as AmazonCognitoIdentity from 'amazon-cognito-identity-js';
-import { BrowserRouter, Switch, Route, Redirect } from 'react-router-dom';
-import { USER_POOL_ID, APP_CLIENT_ID } from '../../environment';
 import Button from 'react-bootstrap/Button';
 import Card from 'react-bootstrap/Card';
 

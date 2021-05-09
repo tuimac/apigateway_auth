@@ -3,8 +3,7 @@ import * as AmazonCognitoIdentity from 'amazon-cognito-identity-js';
 import { USER_POOL_ID, APP_CLIENT_ID } from '../environment';
 import Register from './signup/Register'
 import Verify from './signup/Verify'
-import Button from 'react-bootstrap/Button';
-import Card from 'react-bootstrap/Card';
+import Welcome from './signup/Welcome'
 
 class Signup extends React.Component {
 
@@ -16,7 +15,36 @@ class Signup extends React.Component {
       userpool: '',
       page: <Register handleSignup={ this.handleSignup.bind(this) } />
     };
+    this.state.userpool = new AmazonCognitoIdentity.CognitoUserPool({
+      UserPoolId: USER_POOL_ID,
+      ClientId: APP_CLIENT_ID
+    });
+  }
 
+  handleVerify(state) {
+    console.log(this.props);
+    try {
+      var userPool = new AmazonCognitoIdentity.CognitoUserPool({
+        UserPoolId: USER_POOL_ID,
+        ClientId: APP_CLIENT_ID
+      });
+      var cognitoUser = new AmazonCognitoIdentity.CognitoUser({
+        Username: state.email,
+        Pool: userPool,
+      });
+      cognitoUser.confirmRegistration(state.code, true, (err, result) => {
+        if(err) {
+          console.log(err);
+          alert(err);
+        } else {
+          this.state.page = <Welcome />;
+          this.forceUpdate();
+        }
+      });
+    } catch(e) {
+      console.log(e);
+      alert('Verification was failed with execption!!')
+    } 
   }
 
   handleSignup(state) {
@@ -24,24 +52,16 @@ class Signup extends React.Component {
     this.state.password = state.password;
     try {
       var attributeList = []
-
-      var userPool = new AmazonCognitoIdentity.CognitoUserPool({
-        UserPoolId: USER_POOL_ID,
-        ClientId: APP_CLIENT_ID
-      });
       var attributeEmail = new AmazonCognitoIdentity.CognitoUserAttribute({
         Name: 'email',
         Value: this.state.email
       });
-      console.log(this.state);
       attributeList.push(attributeEmail);
-      userPool.signUp(this.state.email, this.state.password, attributeList, null, (err, result) => {
+      this.state.userpool.signUp(this.state.email, this.state.password, attributeList, null, (err, result) => {
         if(err) {
-          console.log(err)
-          alert('SignUp was failed!!');
+          console.log(err);
         } else {
-          console.log('signup sucess');
-          this.setState({ page: <Verify /> });
+          this.setState({ page: <Verify handleVerify={ this.handleVerify.bind(this.state) } email={ this.state.email } /> });
           this.forceUpdate();
         }
       });
