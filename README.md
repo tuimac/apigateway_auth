@@ -10,7 +10,7 @@ That infrastructure is created by cloudformation. You have to be careful of crea
 ```
 aws cloudformation create-stack --stack-name cognitoS3 --region <Your region code> --capabilities CAPABILITY_NAMED_IAM --template-body file://infra/template.yml
 ```
-<Architecture is created by template.yml>
+** Architecture is created by template.yml **
 ![cognito_s3_cloudformation](https://user-images.githubusercontent.com/18078024/117558493-ee18b600-b0b8-11eb-9678-d2860cf7c7f1.png)
 
 ### 2. Start application
