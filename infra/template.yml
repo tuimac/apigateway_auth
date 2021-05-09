@@ -9,6 +9,10 @@ Parameters:
     Type: String
     Default: cognitoS3
 
+  S3BucketName:
+    Type: String
+    Default: cognito-s3
+
 Resources:
   # cognito
   UserPool:
@@ -149,3 +153,16 @@ Resources:
       Roles:
         unauthenticated: !GetAtt UnauthenticatedRole.Arn
         authenticated: !GetAtt AuthenticatedRole.Arn
+
+  # S3 Bucket
+  Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref S3BucketName
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      Tags:
+        - Key: !Ref NameTagKey
+          Value: !Ref NameTagValue
