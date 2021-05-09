@@ -7,7 +7,7 @@ var userPool = new AmazonCognitoIdentity.CognitoUserPool({
   ClientId: APP_CLIENT_ID
 });
 
-function getSts(jwtToken) {
+export const getSts = () => {
   AWS.config.region = REGION;
   AWS.config.credentials = new AWS.CognitoIdentityCredentials({
     IdentityPoolId: ID_POOL_ID,

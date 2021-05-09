@@ -11,7 +11,7 @@ Parameters:
 
   S3BucketName:
     Type: String
-    Default: cognito-s3
+    Default: cognito-s3-000
 
 Resources:
   # cognito

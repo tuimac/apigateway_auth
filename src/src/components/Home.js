@@ -24,10 +24,10 @@ class Home extends React.Component {
         <h1>home</h1>
         {
           this.state.isLogin ?
-          <button onClick={() => this.handleLogout()}>Click here to log out</button> :
+          <button onClick={() => this.handleLogout()}>Click here LogOut</button> :
           <Redirect to="/login" />
         }
-        
+        <input >
       </div>
     );
   };
