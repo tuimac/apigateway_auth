@@ -27,6 +27,7 @@ class Home extends React.Component {
           <button onClick={() => this.handleLogout()}>Click here to log out</button> :
           <Redirect to="/login" />
         }
+        
       </div>
     );
   };

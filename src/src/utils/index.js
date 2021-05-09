@@ -32,3 +32,26 @@ export const isLogin = () => {
     return true;
   }
 }
+
+export const deleteUser = (email) => {
+  try {
+    var userPool = new AmazonCognitoIdentity.CognitoUserPool({
+      UserPoolId: USER_POOL_ID,
+      ClientId: APP_CLIENT_ID
+    });
+    var cognitoUser = new AmazonCognitoIdentity.CognitoUser({
+      Username: email,
+      Pool: userPool
+    });
+    cognitoUser.deleteUser((err, result) => {
+      if(err) {
+        alert('Deleting user was failed!!');
+        console.log(err);
+      } else {
+        console.log(result);
+      }  
+    });
+  } catch(e) {
+    alert('Deleting user was failed with exception!!');
+  }
+}

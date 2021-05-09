@@ -22,7 +22,6 @@ class Signup extends React.Component {
   }
 
   handleVerify(state) {
-    console.log(this.props);
     try {
       var userPool = new AmazonCognitoIdentity.CognitoUserPool({
         UserPoolId: USER_POOL_ID,
@@ -37,7 +36,7 @@ class Signup extends React.Component {
           console.log(err);
           alert(err);
         } else {
-          this.state.page = <Welcome />;
+          this.setState({ page: <Welcome /> });
           this.forceUpdate();
         }
       });
@@ -61,7 +60,7 @@ class Signup extends React.Component {
         if(err) {
           console.log(err);
         } else {
-          this.setState({ page: <Verify handleVerify={ this.handleVerify.bind(this.state) } email={ this.state.email } /> });
+          this.setState({ page: <Verify handleVerify={ this.handleVerify.bind(this) } email={ this.state.email } /> });
           this.forceUpdate();
         }
       });
