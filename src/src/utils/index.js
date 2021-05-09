@@ -17,31 +17,6 @@ function getSts(jwtToken) {
   });
 }
 
-export const login = (email, password) => {
-  var authDetails = new AmazonCognitoIdentity.AuthenticationDetails({
-    Username: email,
-    Password: password
-  });
-  var cognitoUser = new AmazonCognitoIdentity.CognitoUser({
-    Username: email,
-    Pool: userPool
-  });
-  new Promise(function() {
-    cognitoUser.authenticateUser(authDetails, {
-      onSuccess: (result) => {
-        console.log('authenticateUser() successed result')
-        console.log(result);
-        return true;
-      },
-      onFailure: (err) => {
-        console.log('authenticateUser() failed result')
-        console.log(err);
-        return false;
-      }
-    })
-  });
-}
-
 export const logout = () => {
   var user = userPool.getCurrentUser();
   if(user !== null){

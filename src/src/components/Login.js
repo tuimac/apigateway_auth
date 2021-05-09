@@ -1,4 +1,6 @@
 import React from 'react';
+import * as AmazonCognitoIdentity from 'amazon-cognito-identity-js';
+import { USER_POOL_ID, APP_CLIENT_ID } from '../environment';
 import { login } from '../utils';
 import Button from 'react-bootstrap/Button';
 import Card from 'react-bootstrap/Card';
@@ -22,13 +24,26 @@ class Login extends React.Component {
   }
 
   handleLogin() {
-    var isLoginSuccess = login(this.state.email, this.state.password);
-    console.log(isLoginSuccess);
-    if(isLoginSuccess === true) {
-      this.props.history.push('/home');
-    } else {
-      alert('Login failed!!')
-    };
+    var userPool = new AmazonCognitoIdentity.CognitoUserPool({
+      UserPoolId: USER_POOL_ID,
+      ClientId: APP_CLIENT_ID
+    });
+    var authDetails = new AmazonCognitoIdentity.AuthenticationDetails({
+      Username: this.state.email,
+      Password: this.state.password
+    });
+    var cognitoUser = new AmazonCognitoIdentity.CognitoUser({
+      Username: this.state.email,
+      Pool: userPool
+    });
+    cognitoUser.authenticateUser(authDetails, {
+      onSuccess: (result) => {
+        this.props.history.push('/home');
+      },
+      onFailure: (err) => {
+        alert('Login failed!!')
+      }
+    });
   }
 
   render() {

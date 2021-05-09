@@ -1,31 +1,27 @@
 import React from 'react';
 import * as AmazonCognitoIdentity from 'amazon-cognito-identity-js';
-import { signup } from '../utils';
-import { Redirect } from 'react-router-dom';
 import { USER_POOL_ID, APP_CLIENT_ID } from '../environment';
-import Verify from './verification/Verify'
+import Register from './signup/Register'
+import Verify from './signup/Verify'
 import Button from 'react-bootstrap/Button';
 import Card from 'react-bootstrap/Card';
 
-class Login extends React.Component {
-  
-  constructor() {
-    super();
+class Signup extends React.Component {
+
+  constructor(props) {
+    super(props);
     this.state = {
       email: '',
-      password: ''
+      password: '',
+      userpool: '',
+      page: <Register handleSignup={ this.handleSignup.bind(this) } />
     };
-    this.handleSignup = this.handleSignup.bind(this);
-    this.handleChange = this.handleChange.bind(this);
+
   }
 
-  handleChange({ target }) {
-    this.setState({
-      [target.name]: target.value
-    });
-  }
-
-  handleSignup() {
+  handleSignup(state) {
+    this.state.email = state.email;
+    this.state.password = state.password;
     try {
       var attributeList = []
 
@@ -37,39 +33,31 @@ class Login extends React.Component {
         Name: 'email',
         Value: this.state.email
       });
+      console.log(this.state);
       attributeList.push(attributeEmail);
-      userPool.signUp(this.state.email, this.state.password, attributeList, null, function(err, result){
+      userPool.signUp(this.state.email, this.state.password, attributeList, null, (err, result) => {
         if(err) {
+          console.log(err)
           alert('SignUp was failed!!');
         } else {
-          return(
-            <Verify />
-          );
+          console.log('signup sucess');
+          this.setState({ page: <Verify /> });
+          this.forceUpdate();
         }
       });
     } catch(e) {
       console.log(e);
-      alert('SignUp was failed!!');
+      alert('SignUp was failed with exception!!');
     }
   }
 
   render() {
-    return (
+    return(
       <div>
-        <Card style={{ width: '25rem' }} className="text-center">
-          <Card.Header>
-            <h1>SignUp S3 upload</h1>
-          </Card.Header>
-          <Card.Body>
-            <input type="email" name="email" placeholder="Enter your Email" value={ this.state.email } onChange={ this.handleChange } /><br/><br/>
-            <input type="password" name="password" placeholder="Enter password" value={ this.state.password } onChange={ this.handleChange } /><br/><br/>
-            <Button value="signup" onClick={ this.handleSignup } className="btn btn-primary">SignUp</Button><br/><br/>
-            <a href="/login">Login page</a>
-          </Card.Body>  
-        </Card>
+        { this.state.page }
       </div>
     );
   };
 };
 
-export default Login;
+export default Signup;
