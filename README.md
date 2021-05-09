@@ -10,7 +10,8 @@ That infrastructure is created by cloudformation. You have to be careful of crea
 ```
 aws cloudformation create-stack --stack-name cognitoS3 --region <Your region code> --capabilities CAPABILITY_NAMED_IAM --template-body file://infra/template.yml
 ```
-**Architecture is created by template.yml**
+**<Architecture is created by template.yml>**
+<br/>
 ![cognito_s3_cloudformation](https://user-images.githubusercontent.com/18078024/117558493-ee18b600-b0b8-11eb-9678-d2860cf7c7f1.png)
 
 ### 2. Start application
@@ -24,7 +25,7 @@ You log into that docker container like this.
 ```
 docker exec -it cognito bash
 ```
-If you run the application of cognito authentication, you need three IDs like User Pool ID, Application Client ID, Identity Provider ID. So you run this script `script/getCognitoInfo` in this repository.<br/>
+If you run the application of cognito authentication, you need three IDs like User Pool ID, Application Client ID, Identity Provider ID. So you run this script `script/getCognitoInfo.sh` in this repository.<br/>
 This script require `jq`command and IAM policy authorizations are `cognito-identity:*`,  `cognito-idp:*`.<br/>
 
 ![getCognitoInfo](https://user-images.githubusercontent.com/18078024/117558973-57e68f00-b0bc-11eb-81dc-ebd490f913bf.png)
