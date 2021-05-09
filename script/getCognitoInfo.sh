@@ -4,7 +4,7 @@ TARGETFILE='../src/src/environment.js'
 REGION='ap-northeast-1'
 
 cd $(dirname $0)
-USERPOOLID=`aws cognito-idp list-user-pools --max-results 20 | jq -r '.UserPools[] | select(.Name == "cognitoS3") | .Id' > /dev/null 2>&1` 
+USERPOOLID=`aws cognito-idp list-user-pools --max-results 20 | jq -r '.UserPools[] | select(.Name == "cognitoS3") | .Id'` 
 if [ -z $USERPOOLID ]; then
     echo 'There is no User Pool ID'
     exit 1
