@@ -1,6 +1,10 @@
 import React from 'react';
 import * as AmazonCognitoIdentity from 'amazon-cognito-identity-js';
-import { USER_POOL_ID, APP_CLIENT_ID } from '../environment';
+import {
+  USER_POOL_ID,
+  APP_CLIENT_ID,
+  USERNAME_KEY
+} from '../environment';
 import Button from 'react-bootstrap/Button';
 import Card from 'react-bootstrap/Card';
 
@@ -23,26 +27,31 @@ class Login extends React.Component {
   }
 
   handleLogin() {
-    var userPool = new AmazonCognitoIdentity.CognitoUserPool({
-      UserPoolId: USER_POOL_ID,
-      ClientId: APP_CLIENT_ID
-    });
-    var authDetails = new AmazonCognitoIdentity.AuthenticationDetails({
-      Username: this.state.email,
-      Password: this.state.password
-    });
-    var cognitoUser = new AmazonCognitoIdentity.CognitoUser({
-      Username: this.state.email,
-      Pool: userPool
-    });
-    cognitoUser.authenticateUser(authDetails, {
-      onSuccess: (result) => {
-        this.props.history.push('/home');
-      },
-      onFailure: (err) => {
-        alert('Login failed!!')
-      }
-    });
+    try {
+      var userPool = new AmazonCognitoIdentity.CognitoUserPool({
+        UserPoolId: USER_POOL_ID,
+        ClientId: APP_CLIENT_ID
+      });
+      var authDetails = new AmazonCognitoIdentity.AuthenticationDetails({
+        Username: this.state.email,
+        Password: this.state.password
+      });
+      var cognitoUser = new AmazonCognitoIdentity.CognitoUser({
+        Username: this.state.email,
+        Pool: userPool
+      });
+      cognitoUser.authenticateUser(authDetails, {
+        onSuccess: (result) => {
+          this.props.history.push('/home');
+        },
+        onFailure: (err) => {
+          alert('Login failed!!')
+        }
+      });
+      localStorage.setItem(USERNAME_KEY, this.state.email);
+    } catch(e) {
+      alert('Login was failed with exception!!')
+    }
   }
 
   render() {

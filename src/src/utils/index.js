@@ -1,5 +1,10 @@
 import * as AmazonCognitoIdentity from 'amazon-cognito-identity-js';
-import { USER_POOL_ID, APP_CLIENT_ID, ID_POOL_ID, REGION } from '../environment';
+import {
+  USER_POOL_ID,
+  APP_CLIENT_ID,
+  ID_POOL_ID,
+  USERNAME_KEY
+} from '../environment';
 import AWS from 'aws-sdk';
 
 var userPool = new AmazonCognitoIdentity.CognitoUserPool({
@@ -7,11 +12,11 @@ var userPool = new AmazonCognitoIdentity.CognitoUserPool({
   ClientId: APP_CLIENT_ID
 });
 
-export const getCredentials = (email) => {
+export const getCredentials = () => {
   try {
     var creds = '';
     var cognitoUser = new AmazonCognitoIdentity.CognitoUser({
-      Username: email,
+      Username: localStorage.getItem(USERNAME_KEY),
       Pool: userPool
     });
     cognitoUser.getSession((err, session) => {
@@ -24,6 +29,7 @@ export const getCredentials = (email) => {
           [`cognito-idp.${AWS.config.region}.amazonaws.com/${USER_POOL_ID}`]: session.getIdToken().getJwtToken()
         }
       });
+      console.log(creds);
     });
     return creds;
   } catch(e) {
@@ -32,25 +38,37 @@ export const getCredentials = (email) => {
 }
 
 export const logout = () => {
-  var user = userPool.getCurrentUser();
-  if(user !== null){
+  var user = ''
+  try { 
+    user = userPool.getCurrentUser();
+    if(user !== null){
+      user.signOut();
+    }
+    localStorage.removeItem(USERNAME_KEY);
+  } catch(e) {
     user.signOut();
   }
 }
 
 export const isLogin = () => {
-  var user = userPool.getCurrentUser();
-  if(user === null){
+  try {
+    var user = userPool.getCurrentUser();
+    if(user === null){
+      localStorage.removeItem(USERNAME_KEY);
+      return false;
+    }else {
+      return true;
+    }
+  } catch(e) {
+    localStorage.removeItem(USERNAME_KEY);
     return false;
-  }else {
-    return true;
   }
 }
 
-export const deleteUser = (email) => {
+export const deleteUser = () => {
   try {
     var cognitoUser = new AmazonCognitoIdentity.CognitoUser({
-      Username: email,
+      Username: localStorage.getItem(USERNAME_KEY),
       Pool: userPool
     });
     cognitoUser.deleteUser((err, result) => {

@@ -16,3 +16,4 @@ sed -i "s/export const USER_POOL_ID = \'.*\'/export const USER_POOL_ID = \'$USER
 sed -i "s/export const APP_CLIENT_ID = \'.*\'/export const APP_CLIENT_ID = \'$CLIENTID\'/g" $TARGETFILE
 sed -i "s/export const REGION = \'.*\'/export const REGION = \'$REGION\'/g" $TARGETFILE
 sed -i "s/export const ID_POOL_ID = \'.*\'/export const ID_POOL_ID = \'$IDPID\'/g" $TARGETFILE
+sed -i "s/export const USERNAME_KEY = \'.*\'/export const USERNAME_KEY = \'cognito-username\'/g" $TARGETFILE

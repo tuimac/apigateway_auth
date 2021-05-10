@@ -1,6 +1,11 @@
 import React from 'react';
 import { logout, isLogin } from '../utils';
 import { Redirect } from 'react-router-dom';
+import {
+  Button,
+  Nav,
+  Navbar,
+} from 'react-bootstrap';
 
 class Home extends React.Component {
 
@@ -21,13 +26,13 @@ class Home extends React.Component {
   render() {
     return(
       <div>
-        <h1>home</h1>
-        {
-          this.state.isLogin ?
-          <button onClick={() => this.handleLogout()}>Click here LogOut</button> :
-          <Redirect to="/login" />
-        }
-        <input >
+        <Navbar bg="primary" variant="dark">
+          <Navbar.Brand href="/">S3 Uploader</Navbar.Brand>
+          <Nav className="mr-auto">
+            <Nav.Link href="/upload">S3Upload</Nav.Link>
+          </Nav>
+          { this.state.isLogin ? <Button variant="danger" onClick={() => this.handleLogout()}>LogOut</Button> : <Redirect to="/login" />}
+        </Navbar>
       </div>
     );
   };
