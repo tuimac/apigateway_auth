@@ -7,14 +7,28 @@ var userPool = new AmazonCognitoIdentity.CognitoUserPool({
   ClientId: APP_CLIENT_ID
 });
 
-export const getSts = () => {
-  AWS.config.region = REGION;
-  AWS.config.credentials = new AWS.CognitoIdentityCredentials({
-    IdentityPoolId: ID_POOL_ID,
-    Logins: {
-      [`cognito-idp.${AWS.config.region}.amazonaws.com/${USER_POOL_ID}`]: jwtToken
-    }
-  });
+export const getCredentials = (email) => {
+  try {
+    var creds = '';
+    var cognitoUser = new AmazonCognitoIdentity.CognitoUser({
+      Username: email,
+      Pool: userPool
+    });
+    cognitoUser.getSession((err, session) => {
+      if(err) {
+        alert('Getsession was failed!!');
+      }
+      creds = AWS.CognitoIdentityCredentials({
+        IdentityPoolId: ID_POOL_ID,
+        Logins: {
+          [`cognito-idp.${AWS.config.region}.amazonaws.com/${USER_POOL_ID}`]: session.getIdToken().getJwtToken()
+        }
+      });
+    });
+    return creds;
+  } catch(e) {
+    return '';
+  }
 }
 
 export const logout = () => {
@@ -35,10 +49,6 @@ export const isLogin = () => {
 
 export const deleteUser = (email) => {
   try {
-    var userPool = new AmazonCognitoIdentity.CognitoUserPool({
-      UserPoolId: USER_POOL_ID,
-      ClientId: APP_CLIENT_ID
-    });
     var cognitoUser = new AmazonCognitoIdentity.CognitoUser({
       Username: email,
       Pool: userPool

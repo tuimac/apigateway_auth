@@ -31,3 +31,8 @@ This script require `jq`command and IAM policy authorizations are `cognito-ident
 ![getCognitoInfo](https://user-images.githubusercontent.com/18078024/117558973-57e68f00-b0bc-11eb-81dc-ebd490f913bf.png)
 
 Then you can access to `http://localhost/`. Have fun!
+
+# Functions
+- Login
+- Signup
+- Verification by code
