@@ -21,18 +21,22 @@ export const getCredentials = () => {
     });
     cognitoUser.getSession((err, session) => {
       if(err) {
+        console.log(err);
         alert('Getsession was failed!!');
+      } else {
+        session.isValid();
+        creds = AWS.CognitoIdentityCredentials({
+          IdentityPoolId: ID_POOL_ID,
+          Logins: {
+            [`cognito-idp.${AWS.config.region}.amazonaws.com/${USER_POOL_ID}`]: session.getIdToken().getJwtToken()
+          }
+        });
+        console.log(creds);
       }
-      creds = AWS.CognitoIdentityCredentials({
-        IdentityPoolId: ID_POOL_ID,
-        Logins: {
-          [`cognito-idp.${AWS.config.region}.amazonaws.com/${USER_POOL_ID}`]: session.getIdToken().getJwtToken()
-        }
-      });
-      console.log(creds);
     });
     return creds;
   } catch(e) {
+    console.log(e);
     return '';
   }
 }

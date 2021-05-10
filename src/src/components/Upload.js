@@ -42,9 +42,9 @@ class Upload extends React.Component {
       this.state.s3.listObjects(this.state.bucket, (err, data) => {
         if(err) {
           console.log(err);
-          alert('List file name was failed!!')
+        } else {
+          console.log(data);
         }
-        console.log(data);
       });
     } catch(e) {
       alert('List file name was failed with exception!!')
