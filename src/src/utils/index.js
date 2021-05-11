@@ -3,7 +3,8 @@ import {
   USER_POOL_ID,
   APP_CLIENT_ID,
   ID_POOL_ID,
-  USERNAME_KEY
+  USERNAME_KEY,
+  REGION
 } from '../environment';
 import AWS from 'aws-sdk';
 
@@ -15,28 +16,28 @@ var userPool = new AmazonCognitoIdentity.CognitoUserPool({
 export const getCredentials = () => {
   try {
     var creds = '';
-    var cognitoUser = new AmazonCognitoIdentity.CognitoUser({
-      Username: localStorage.getItem(USERNAME_KEY),
-      Pool: userPool
-    });
-    cognitoUser.getSession((err, session) => {
-      if(err) {
-        console.log(err);
-        alert('Getsession was failed!!');
-      } else {
-        session.isValid();
-        creds = AWS.CognitoIdentityCredentials({
-          IdentityPoolId: ID_POOL_ID,
-          Logins: {
-            [`cognito-idp.${AWS.config.region}.amazonaws.com/${USER_POOL_ID}`]: session.getIdToken().getJwtToken()
-          }
-        });
-        console.log(creds);
-      }
-    });
+    var cognitoUser = userPool.getCurrentUser();
+    if(cognitoUser !== null){
+      cognitoUser.getSession((err, session) => {
+        if(err) {
+          console.log(err);
+          alert('Getsession was failed!!');
+        } else {
+          session.isValid();
+          creds = new AWS.CognitoIdentityCredentials({
+            IdentityPoolId: ID_POOL_ID,
+            Logins: {
+              [`cognito-idp.${AWS.config.region}.amazonaws.com/${USER_POOL_ID}`]: session.getIdToken().getJwtToken()
+            }
+          });
+          console.log(creds);
+        }
+      });
+    }
     return creds;
   } catch(e) {
     console.log(e);
+    alert('Getssion was failed with exception!!')
     return '';
   }
 }

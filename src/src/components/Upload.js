@@ -24,11 +24,6 @@ class Upload extends React.Component {
       s3: '',
       bucket: { Bucket: BUCKET_NAME }
     };
-    AWS.config.region = REGION;
-    this.state.s3 = new AWS.S3({
-      apiVersion: '2006-03-01',
-      param: this.state.bucket
-    });
   }
 
   handleLogout = () => {
@@ -38,8 +33,13 @@ class Upload extends React.Component {
 
   handleListFiles = () => {
     try {
+      AWS.config.region = REGION;
       AWS.config.credentials = getCredentials();
-      this.state.s3.listObjects(this.state.bucket, (err, data) => {
+      var s3 = new AWS.S3({
+        apiVersion: '2006-03-01',
+        param: this.state.bucket
+      });
+      s3.listObjects(this.state.bucket, (err, data) => {
         if(err) {
           console.log(err);
         } else {
