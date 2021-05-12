@@ -4,13 +4,19 @@ import boto3
 import json
 import os
 
-USERPOOLID = os.environ.get('USERPOOLID')
-CLIENTID = os.environ.get('CLIENTID')
-IDPOOLID = os.environ.get('IDPOOLID')
-NAME = os.environ.get('NAME')
-PASSWORD = os.environ.get('PASSWORD')
+USER_POOL_ID = os.environ.get('USER_POOL_ID')
+APP_CLIENT_ID = os.environ.get('APP_CLIENT_ID')
+ID_PROVIDER_ID = os.environ.get('ID_PROVIDER_ID')
+USER_NAME = os.environ.get('USER_NAME')
+BUCKET_NAME = os.environ.get('BUCKET_NAME')
+USER_NAME_PREFIX = 'cognitoS3-UserPool-Group'
 
 def create_environment():
+    def create_s3_folder():
+        s3 = boto3.client('s3')
+        response = s3.put_object(Bucket=BUCKET_NAME, Key=(USER_NAME + '/'))
+        print(response)
+
     def create_iam_role():
         # IAM Policy
         policy = {
@@ -19,8 +25,10 @@ def create_environment():
                 {
                     'Effect': 'Allow',
                     'Action': [
-                        's3:Get*',
-                        's3:List*'
+                        's3:GetObject',
+                        's3:ListObject',
+                        's3:PutObject',
+                        's3:DeleteObject'
                     ],
                     'Resource': '*'
                 }
@@ -48,18 +56,18 @@ def create_environment():
                 }
             ]
         }
-        trust_relationship['Statement'][0]['Condition']['StringEquals']['cognito-identity.amazonaws.com:aud'] = IDPOOLID
+        trust_relationship['Statement'][0]['Condition']['StringEquals']['cognito-identity.amazonaws.com:aud'] = ID_PROVIDER_ID
         trust_relationship = json.dumps(trust_relationship)
 
         # Create IAM Role
         iam = boto3.client('iam')
         policy_arn = iam.create_policy(
-            PolicyName = NAME + '_' + USERPOOLID,
+            PolicyName = NAME + '_' + USER_NAME_PREFIX,
             PolicyDocument = policy
         )['Policy']['Arn']
 
         role_arn = iam.create_role(
-            RoleName = NAME + '_' + USERPOOLID,
+            RoleName = NAME + '_' + USER_NAME_PREFIX,
             AssumeRolePolicyDocument = trust_relationship,
         )['Role']['Arn']
 
@@ -70,47 +78,31 @@ def create_environment():
 
         return role_arn
 
-    def create_user(cognito):
-        response = cognito.sign_up(
-            ClientId = CLIENTID,
-            Username = NAME,
-            Password = PASSWORD,
-            UserAttributes = [
-                {
-                    'Name': 'email',
-                    'Value': ''
-                }
-            ]
-        )
-        response = cognito.admin_confirm_sign_up(
-            UserPoolId = USERPOOLID,
-            Username = NAME
-        )
-
     def create_group(cognito, iam_role_arn):
+        cognito = boto3.client('cognito')
         response = cognito.create_group(
-            GroupName = NAME,
-            UserPoolId = USERPOOLID,
+            GroupName = USER_NAME,
+            UserPoolId = USER_POOL_ID,
             RoleArn = iam_role_arn
         )
 
-    def add_user_to_group(cognito):
+    def add_user_to_group():
+        cognito = boto3.client('cognito')
         response = cognito.admin_add_user_to_group(
-            UserPoolId = USERPOOLID,
-            Username = NAME,
-            GroupName = NAME
+            UserPoolId = USER_POOL_ID,
+            Username = USER_NAME,
+            GroupName = USER_NAME
         )
 
-    # Initialization
-    cognito = boto3.client('cognito-idp')
+    # Create S3 Folder
+    create_s3_folder()
     # Create IAM Role
     iam_role_arn = create_iam_role()
-    # Create AWS Cognito User
-    create_user(cognito)
     # Create AWS Cognito Group
-    create_group(cognito, iam_role_arn)
+    create_group(iam_role_arn)
     # Make AWS Cognito User join into AWS Cognito Group
-    add_user_to_group(cognito) 
+    add_user_to_group()
 
 if __name__ == '__main__':
     create_environment()
+    #delete_environment()
