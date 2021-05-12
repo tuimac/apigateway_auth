@@ -1,6 +1,12 @@
 # Access S3 with cognito authentication
 Implementation of cognito authentication infrastructure and try to access with the token from AWS cognito.
 
+# Authentication and Authorization
+Authentication is based on email and password. When you sign up with this User Pool, you need to verify your email with 6 digits code.<br/>
+Authorization is RBAC with IAM Role. This picture below represent with the entire authorization with AWS cognito to access S3 bucket. Each IAM Role associate with User Pool Group. The IDP provide JWT with each User Pool Group. Then you set S3 bucket policy which principal is set to each IAM Role to control the access for every User Pool Group.
+
+![s3upload](https://user-images.githubusercontent.com/18078024/117998487-eb4ee700-b37e-11eb-9919-aa23b84e0d30.png)
+
 ## How to use
 This is the procedure for trying to run the cognito application.
 
