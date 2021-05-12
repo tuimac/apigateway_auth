@@ -42,3 +42,4 @@ Then you can access to `http://localhost/`. Have fun!
 - Login
 - Signup
 - Verification by code
+- S3ListObjects
