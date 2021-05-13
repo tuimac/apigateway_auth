@@ -2,7 +2,7 @@ import * as AmazonCognitoIdentity from 'amazon-cognito-identity-js';
 import {
   USER_POOL_ID,
   APP_CLIENT_ID,
-  ID_POOL_ID,
+  ID_PROVIDER_ID,
   USERNAME_KEY,
   REGION
 } from '../environment';
@@ -25,7 +25,7 @@ export const getCredentials = () => {
         } else {
           session.isValid();
           creds = new AWS.CognitoIdentityCredentials({
-            IdentityPoolId: ID_POOL_ID,
+            IdentityPoolId: ID_PROVIDER_ID,
             Logins: {
               [`cognito-idp.${AWS.config.region}.amazonaws.com/${USER_POOL_ID}`]: session.getIdToken().getJwtToken()
             }
