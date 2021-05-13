@@ -104,7 +104,7 @@ def create_environment():
     def modify_bucket_policy(bucket_key_arn):
         s3 = boto3.client('s3')
         iam = boto3.client('iam')
-        policy = s3.get_bucket_policy(Bucket=BUCKET_NAME)['Policy']
+        policy = json.loads(s3.get_bucket_policy(Bucket=BUCKET_NAME)['Policy'])
         role_arn = iam.get_role(RoleName=(USER_NAME + '_' + USER_NAME_PREFIX))['Role']['Arn']
         added_policy = {
             'Effect': 'Allow',
