@@ -23,9 +23,9 @@ sed -i "s/export const USERNAME_KEY = \'.*\'/export const USERNAME_KEY = \'cogni
 
 
 
-sed -i "s/export USER_POOL_ID = \'.*\'/export USER_POOL_ID = \'${USERPOOLID}\'" $ENVFILE
-sed -i "s/export APP_CLIENT_ID = \'.*\'/export APP_CLIENT_ID = \'${CLIENTID}\'" $ENVFILE
-sed -i "s/export ID_PROVIDER_ID = \'.*\'/export ID_PROVIDER_ID = \'${IDPID}\'" $ENVFILE
-sed -i "s/export USER_NAME = \'.*\'/export USERNAME = \'tuimac.devadm01@gmail.com\'" $ENVFILE
-sed -i "s/export BUCKET_NAME = \'.*\'/export BUCKET_NAME = \'$BUCEKTNAME\'" $ENVFILE
-sed -i "s/export USER_NAME_PREFIX = \'.*\'/export USER_NAME_PREFIX = \'cognitoS3-UserPool-Group\'" $ENVFILE
+sed -i "s/export USER_POOL_ID = \'.*\'/export USER_POOL_ID = \'${USERPOOLID}\'/g" $ENVFILE
+sed -i "s/export APP_CLIENT_ID = \'.*\'/export APP_CLIENT_ID = \'${CLIENTID}\'/g" $ENVFILE
+sed -i "s/export ID_PROVIDER_ID = \'.*\'/export ID_PROVIDER_ID = \'${IDPID}\'/g" $ENVFILE
+sed -i "s/export USER_NAME = \'.*\'/export USERNAME = \'tuimac.devadm01@gmail.com\'/g" $ENVFILE
+sed -i "s/export BUCKET_NAME = \'.*\'/export BUCKET_NAME = \'$BUCEKTNAME\'/g" $ENVFILE
+sed -i "s/export USER_NAME_PREFIX = \'.*\'/export USER_NAME_PREFIX = \'cognitoS3-UserPool-Group\'/g" $ENVFILE
