@@ -279,8 +279,8 @@ Resources:
               if event['RequestType'] == 'Delete':
                 cfnresponse.send(event, context, cfnresponse.SUCCESS, response)
               elif event['RequestType'] == 'Create':
-                lambda = boto3.client('lambda')
-                response['Response'] = lambda.update_function_configuration(
+                client = boto3.client('lambda')
+                response['Response'] = client.update_function_configuration(
                   FunctionName = event['ServiceToken'],
                   Environment = {
                     'Variables': {
