@@ -4,7 +4,6 @@ import {
   APP_CLIENT_ID,
   ID_PROVIDER_ID,
   USERNAME_KEY,
-  REGION
 } from '../environment';
 import AWS from 'aws-sdk';
 

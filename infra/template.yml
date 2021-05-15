@@ -18,7 +18,6 @@ Parameters:
     Default: cognitoS3-UserPool-Group
 
 Resources:
-
   # cognito
   UserPool:
     Type: AWS::Cognito::UserPool
@@ -33,7 +32,7 @@ Resources:
       EmailVerificationSubject: Verified by code
       EmailVerificationMessage: Your verification code is {####}
       LambdaConfig:
-        PreSignUp: !GetAtt SignUpLambda.Arn
+        PreSignUp: !GetAtt PreSignedLambda.Arn
       Policies:
         PasswordPolicy:
           MinimumLength: 8
@@ -68,7 +67,7 @@ Resources:
       CognitoIdentityProviders:
         - ClientId: !Ref UserPoolClient
           ProviderName: !Join
-            - ""
+            - ''
             - - cognito-idp.
               - !Ref 'AWS::Region'
               - .amazonaws.com/
@@ -78,7 +77,7 @@ Resources:
     Type: AWS::IAM::Role
     Properties:
       RoleName: !Join
-        - ""
+        - ''
         - - !Ref NameTagValue
           - '-'
           - Unauthenticated
@@ -97,7 +96,7 @@ Resources:
       Path: /
       Policies:
         - PolicyName: !Join
-            - ""
+            - ''
             - - Unauthenticated-
               - !Ref NameTagValue
           PolicyDocument:
@@ -117,7 +116,7 @@ Resources:
     Type: AWS::IAM::Role
     Properties:
       RoleName: !Join
-        - ""
+        - ''
         - - !Ref NameTagValue
           - '-'
           - Authenticated
@@ -136,7 +135,7 @@ Resources:
       Path: /
       Policies:
         - PolicyName: !Join
-            - ""
+            - ''
             - - Authenticated-
               - !Ref NameTagValue
           PolicyDocument:
@@ -165,7 +164,7 @@ Resources:
     Type: AWS::IAM::Role
     Properties:
       RoleName: !Join
-        - ""
+        - ''
         - - 'Admin_'
           - !Ref NamePrefix
       AssumeRolePolicyDocument:
@@ -218,10 +217,10 @@ Resources:
             Principal:
               AWS: !GetAtt AdminUserRole.Arn
 
-  SignUpLambdaRole:
+  PreSignedLambdaRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: SignUpLambdaRole
+      RoleName: PreSignedLambdaRole
       AssumeRolePolicyDocument:
         Version: 2012-10-17
         Statement:
@@ -233,7 +232,7 @@ Resources:
               - sts:AssumeRole
       Path: /
       Policies:
-        - PolicyName: SignUpLambdaPolicy
+        - PolicyName: PreSignedLambdaPolicy
           PolicyDocument:
             Version: 2012-10-17
             Statement:
@@ -253,6 +252,7 @@ Resources:
                   - "s3:PutObject"
                   - "s3:PutBucketPolicy"
                   - "s3:GetBucketPolicy"
+                  - "lambda:UpdateFunctionConfiguration"
                   - "logs:*"
                   - "kms:*"
                 Resource:
@@ -261,7 +261,7 @@ Resources:
         - Key: !Ref NameTagKey
           Value: !Ref NameTagValue
 
-  SignUpLambda:
+  PreSignedLambda:
     Type: AWS::Lambda::Function
     Properties:
       Code:
@@ -281,20 +281,19 @@ Resources:
               elif event['RequestType'] == 'Create':
                 client = boto3.client('lambda')
                 response['Response'] = client.update_function_configuration(
-                  FunctionName = event['ServiceToken'],
+                  FunctionName = event['ResourceProperties']['ServiceToken'],
                   Environment = {
                     'Variables': {
-                      'USER_POOL_ID': event['USER_POOL_ID'],
-                      'APP_CLIENT_ID': event['APP_CLIENT_ID'],
-                      'ID_PROVIDER_ID': event['ID_PROVIDER_ID'],
-                      'BUCKET_NAME': event['BUCKET_NAME']
+                      'USER_POOL_ID': event['ResourceProperties']['USER_POOL_ID'],
+                      'APP_CLIENT_ID': event['ResourceProperties']['APP_CLIENT_ID'],
+                      'ID_PROVIDER_ID': event['ResourceProperties']['ID_PROVIDER_ID'],
+                      'BUCKET_NAME': event['ResourceProperties']['BUCKET_NAME']
                     }
                   }
                 )
                 cfnresponse.send(event, context, cfnresponse.SUCCESS, response)
               else:
-                response['Result'] = event
-                cfnresponse.send(event, context, cfnresponse.SUCCESS, response)
+                print(event)
               return
             except ClientError:
               response['Exception'] = traceback.format_exc()
@@ -308,16 +307,24 @@ Resources:
       Timeout: 900
       Handler: index.handler
       MemorySize: 128
-      Role: !GetAtt SignUpLambdaRole.Arn
-      FunctionName: SignUpLambda
+      Role: !GetAtt PreSignedLambdaRole.Arn
+      FunctionName: PreSignedLambda
       Tags:
         - Key: !Ref NameTagKey
           Value: !Ref NameTagValue
 
+  PreSignedLambdaPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: 'lambda:InvokeFunction'
+      FunctionName: !GetAtt PreSignedLambda.Arn
+      Principal: cognito-idp.amazonaws.com
+      SourceArn: !GetAtt UserPool.Arn
+
   LambdaEnvironment:
     Type: Custom::LambdaEnvironment
     Properties:
-      ServiceToken: !GetAtt SignUpLambda.Arn
+      ServiceToken: !GetAtt PreSignedLambda.Arn
       USER_POOL_ID: !Ref UserPool
       APP_CLIENT_ID: !Ref UserPoolClient
       ID_PROVIDER_ID: !Ref IdentityPool
