@@ -13,7 +13,74 @@ Parameters:
     Type: String
     Default: cognito-s3-000
 
+  NamePrefix:
+    Type: String
+    Default: cognitoS3-UserPool-Group
+
 Resources:
+  SignUpLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: SignUpLambdaRole
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: /
+      Policies:
+        - PolicyName: SignUpLambdaPolicy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "iam:CreateRole"
+                  - "iam:CreatePolicy"
+                  - "iam:DeleteRole"
+                  - "iam:DeletePolicy"
+                  - "iam:AttachRolePolicy"
+                  - "iam:DetachRolePolicy"
+                  - "iam:GetRole"
+                  - "iam:ListPolicies"
+                  - "iam:ListRoles"
+                  - "cognito-idp:CreateGroup"
+                  - "cognito-idp:AdminAddUserToGroup"
+                  - "s3:PutObject"
+                  - "s3:PutBucketPolicy"
+                  - "s3:GetBucketPolicy"
+                Resource:
+                  - "*"
+      Tags:
+        - Key: !Ref NameTagKey
+          Value: !Ref NameTagValue
+
+  SingUpLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        ZipFile: |
+          import json
+          import traceback
+          def handler(event, context):
+            try:
+              print(event)
+            except:
+              traceback.print_exc()
+      Runtime: python3.8
+      Timeout: 900
+      Handler: index.handler
+      MemorySize: 128
+      Role: !Ref SignUpLambdaRole
+      FunctionName: SignUpLambda
+      Tags:
+        - Key: !Ref NameTagKey
+          Value: !Ref NameTagValue
+
   # cognito
   UserPool:
     Type: AWS::Cognito::UserPool
@@ -154,6 +221,29 @@ Resources:
         unauthenticated: !GetAtt UnauthenticatedRole.Arn
         authenticated: !GetAtt AuthenticatedRole.Arn
 
+  AdmimUserRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Join
+        - ""
+        - - 'Admin_'
+          - !Ref NamePrefix
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action: "sts:AssumeRoleWithWebIdentity"
+            Principal:
+              Federated: cognito-identity.amazonaws.com
+            Condition:
+              StringEquals:
+                "cognito-identity.amazonaws.com:aud": !Ref IdentityPool
+              ForAnyValue:StringLike:
+                "cognito-identity.amazonaws.com:amr": authenticated
+      Tags:
+        - Key: !Ref NameTagKey
+          Value: !Ref NameTagValue
+
   # S3 Bucket
   Bucket:
     Type: AWS::S3::Bucket
@@ -171,3 +261,20 @@ Resources:
       Tags:
         - Key: !Ref NameTagKey
           Value: !Ref NameTagValue
+
+  BucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref Bucket
+      PolicyDocument:
+        Statement:
+          - Action:
+              - 's3:ListObject'
+            Effect: Allow
+            Resource: !Join
+              - ''
+              - - 'arn:aws:s3:::'
+                - !Ref Bucket
+                - /*
+            Principal:
+              AWS: !GetAtt AdminUserRole.Arn

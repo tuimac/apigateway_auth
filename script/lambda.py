@@ -150,21 +150,31 @@ def create_environment():
     modify_bucket_policy(bucket_key_arn)
 
 def delete_environment():
-    def delete_roles():
-        iam = boto3.client('iam')
-        for role in iam.list_roles()['Roles']:
-            if USER_NAME_PREFIX in role['RoleName']:
-                iam.delete_role(RoleName=role['RoleName'])
+    def delete_iam():
+        try:
+            iam = boto3.client('iam')
+            for role in iam.list_roles()['Roles']:
+                if USER_NAME_PREFIX in role['RoleName']:
+                    for policy in iam.list_policies()['Policies']:
+                        if role['RoleName'] == policy['PolicyName']:
+                            iam.detach_role_policy(RoleName=role['RoleName'], PolicyArn=policy['Arn'])
+                            time.sleep(3)
+                            iam.delete_policy(PolicyArn=policy['Arn'])
+                            iam.delete_role(RoleName=role['RoleName'])
+        except ClientError:
+            pass
 
-    def delete_policies():
-        iam = boto3.client('iam')
-        for policy in iam.list_policies()['Policies']:
-            if USER_NAME_PREFIX in policy['PolicyName']:
-                iam.delete_policy(PolicyArn=policy['Arn'])
-
-    delete_roles()
-    delete_policies()
+    def delete_s3_objects():
+        try:
+            s3 = boto3.resource('s3')
+            bucket = s3.Bucket(BUCKET_NAME)
+            bucket.objects.all().delete()
+        except ClientError:
+            pass
+    
+    delete_iam()
+    delete_s3_objects()
 
 if __name__ == '__main__':
-    create_environment()
-    #delete_environment()
+    #create_environment()
+    delete_environment()
