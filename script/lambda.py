@@ -114,26 +114,29 @@ def create_environment():
             pass
 
     def modify_bucket_policy(bucket_key_arn):
-        s3 = boto3.client('s3')
-        iam = boto3.client('iam')
-        policy = json.loads(s3.get_bucket_policy(Bucket=BUCKET_NAME)['Policy'])
-        role_arn = iam.get_role(RoleName=(USER_NAME + '_' + USER_NAME_PREFIX))['Role']['Arn']
-        added_policy = {
-            'Effect': 'Allow',
-            'Principal': role_arn,
-            'Action': [
-                's3:GetObject',
-                's3:List*',
-                's3:PutObject',
-                's3:DeleteObject'
-            ],
-            'Resource': bucket_key_arn
-        }
-        policy['Statement'].append(added_policy)
-        s3.put_bucket_policy(
-            Bucket = BUCKET_NAME,
-            Policy = json.dumps(policy)
-        )
+        try:
+            s3 = boto3.client('s3')
+            iam = boto3.client('iam')
+            policy = json.loads(s3.get_bucket_policy(Bucket=BUCKET_NAME)['Policy'])
+            role_arn = iam.get_role(RoleName=(USER_NAME + '_' + USER_NAME_PREFIX))['Role']['Arn']
+            added_policy = {
+                'Effect': 'Allow',
+                'Principal': role_arn,
+                'Action': [
+                    's3:GetObject',
+                    's3:List*',
+                    's3:PutObject',
+                    's3:DeleteObject'
+                ],
+                'Resource': bucket_key_arn
+            }
+            policy['Statement'].append(added_policy)
+            s3.put_bucket_policy(
+                Bucket = BUCKET_NAME,
+                Policy = json.dumps(policy)
+            )
+        except ClientError:
+            pass
 
     # Create S3 Folder
     bucket_key_arn = create_s3_folder()
