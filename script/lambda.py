@@ -4,6 +4,7 @@ import boto3
 import json
 import os
 import time
+from botocore.exceptions import ClientError
 
 USER_POOL_ID = os.environ.get('USER_POOL_ID')
 APP_CLIENT_ID = os.environ.get('APP_CLIENT_ID')
@@ -14,92 +15,103 @@ USER_NAME_PREFIX = 'cognitoS3-UserPool-Group'
 
 def create_environment():
     def create_s3_folder():
-        path = USER_NAME + '/'
-        s3 = boto3.client('s3')
-        s3.put_object(Bucket=BUCKET_NAME, Key=path)
-        return 'arn:aws:s3:::' + BUCKET_NAME + '/' + path + '*'
-
+        try:
+            path = USER_NAME + '/'
+            s3 = boto3.client('s3')
+            s3.put_object(Bucket=BUCKET_NAME, Key=path)
+            return 'arn:aws:s3:::' + BUCKET_NAME + '/' + path + '*'
+        except ClientError:
+            pass
 
     def create_iam_role():
-        # IAM Policy
-        policy = {
-            "Version": "2012-10-17",
-            "Statement": [
-                {
-                    "Effect": "Allow",
-                    "Action": [
-                        "s3:GetObject",
-                        "s3:List*",
-                        "s3:PutObject",
-                        "s3:DeleteObject"
-                    ],
-                    "Resource": "*"
-                }
-            ]
-        }            
+        try:
+            # IAM Policy
+            policy = {
+                "Version": "2012-10-17",
+                "Statement": [
+                    {
+                        "Effect": "Allow",
+                        "Action": [
+                            "s3:GetObject",
+                            "s3:List*",
+                            "s3:PutObject",
+                            "s3:DeleteObject"
+                        ],
+                        "Resource": "*"
+                    }
+                ]
+            }            
 
-        # Trust relationship
-        trust_relationship = {
-            "Version": "2012-10-17",
-            "Statement": [
-                {
-                    "Effect": "Allow",
-                    "Principal": {
-                        "Federated": "cognito-identity.amazonaws.com"
-                    },
-                    "Action": "sts:AssumeRoleWithWebIdentity",
-                    "Condition": {
-                        "StringEquals": {
-                            "cognito-identity.amazonaws.com:aud": ""
+            # Trust relationship
+            trust_relationship = {
+                "Version": "2012-10-17",
+                "Statement": [
+                    {
+                        "Effect": "Allow",
+                        "Principal": {
+                            "Federated": "cognito-identity.amazonaws.com"
                         },
-                        "ForAnyValue:StringLike": {
-                            "cognito-identity.amazonaws.com:amr": "authenticated"
+                        "Action": "sts:AssumeRoleWithWebIdentity",
+                        "Condition": {
+                            "StringEquals": {
+                                "cognito-identity.amazonaws.com:aud": ""
+                            },
+                            "ForAnyValue:StringLike": {
+                                "cognito-identity.amazonaws.com:amr": "authenticated"
+                            }
                         }
                     }
-                }
-            ]
-        }
+                ]
+            }
 
-        trust_relationship['Statement'][0]['Condition']['StringEquals']['cognito-identity.amazonaws.com:aud'] = ID_PROVIDER_ID
-        policy = json.dumps(policy)
-        trust_relationship = json.dumps(trust_relationship)
+            trust_relationship['Statement'][0]['Condition']['StringEquals']['cognito-identity.amazonaws.com:aud'] = ID_PROVIDER_ID
+            policy = json.dumps(policy)
+            trust_relationship = json.dumps(trust_relationship)
 
-        # Create IAM Role
-        iam = boto3.client('iam')
-        policy_arn = iam.create_policy(
-            PolicyName = USER_NAME + '_' + USER_NAME_PREFIX,
-            PolicyDocument = policy
-        )['Policy']['Arn']
+            # Create IAM Role
+            iam = boto3.client('iam')
+            policy_arn = iam.create_policy(
+                PolicyName = USER_NAME + '_' + USER_NAME_PREFIX,
+                PolicyDocument = policy
+            )['Policy']['Arn']
 
-        role_arn = iam.create_role(
-            RoleName = USER_NAME + '_' + USER_NAME_PREFIX,
-            AssumeRolePolicyDocument = trust_relationship,
-        )['Role']['Arn']
+            role_arn = iam.create_role(
+                RoleName = USER_NAME + '_' + USER_NAME_PREFIX,
+                AssumeRolePolicyDocument = trust_relationship,
+            )['Role']['Arn']
 
-        time.sleep(5)
-        
-        iam.attach_role_policy(
-            RoleName = USER_NAME + '_' + USER_NAME_PREFIX,
-            PolicyArn = policy_arn
-        )
+            time.sleep(5)
+            
+            iam.attach_role_policy(
+                RoleName = USER_NAME + '_' + USER_NAME_PREFIX,
+                PolicyArn = policy_arn
+            )
 
-        return role_arn
+            return role_arn
+        except ClientError:
+            pass
 
     def create_group(iam_role_arn):
-        cognito = boto3.client('cognito-idp')
-        response = cognito.create_group(
-            GroupName = USER_NAME,
-            UserPoolId = USER_POOL_ID,
-            RoleArn = iam_role_arn
-        )
+        try:
+            cognito = boto3.client('cognito-idp')
+            response = cognito.create_group(
+                GroupName = USER_NAME,
+                UserPoolId = USER_POOL_ID,
+                RoleArn = iam_role_arn
+            )
+        except ClientError:
+            pass
 
     def add_user_to_group():
-        cognito = boto3.client('cognito-idp')
-        response = cognito.admin_add_user_to_group(
-            UserPoolId = USER_POOL_ID,
-            Username = USER_NAME,
-            GroupName = USER_NAME
-        )
+        try:
+            cognito = boto3.client('cognito-idp')
+            response = cognito.admin_add_user_to_group(
+                UserPoolId = USER_POOL_ID,
+                Username = USER_NAME,
+                GroupName = USER_NAME
+            )
+        except ClientError:
+            pass
 
     def modify_bucket_policy(bucket_key_arn):
         s3 = boto3.client('s3')
@@ -133,6 +145,22 @@ def create_environment():
     add_user_to_group()
     # Modify S3 Bucket Policy
     modify_bucket_policy(bucket_key_arn)
+
+def delete_environment():
+    def delete_roles():
+        iam = boto3.client('iam')
+        for role in iam.list_roles()['Roles']:
+            if USER_NAME_PREFIX in role['RoleName']:
+                iam.delete_role(RoleName=role['RoleName'])
+
+    def delete_policies():
+        iam = boto3.client('iam')
+        for policy in iam.list_policies()['Policies']:
+            if USER_NAME_PREFIX in policy['PolicyName']:
+                iam.delete_policy(PolicyArn=policy['Arn'])
+
+    delete_roles()
+    delete_policies()
 
 if __name__ == '__main__':
     create_environment()
