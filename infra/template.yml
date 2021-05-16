@@ -13,7 +13,7 @@ Parameters:
     Type: String
     Default: cognito-s3-000
 
-  USER_NAME_PREFIX:
+  UserNamePrefix:
     Type: String
     Default: cognitoS3-UserPool-Group
 
@@ -428,11 +428,13 @@ Resources:
           import traceback
           import cfnresponse
           import boto3
+          import os
           from botocore.exceptions import ClientError
           def handler(event, context):
             response = {}
             try:
               if event['RequestType'] == 'Delete':
+                USER_NAME_PREFIX = os.environ.get('USER_NAME_PREFIX')
                 def delete_iam():
                   try:
                     iam = boto3.client('iam')
@@ -509,4 +511,4 @@ Resources:
       APP_CLIENT_ID: !Ref UserPoolClient
       ID_PROVIDER_ID: !Ref IdentityPool
       BUCKET_NAME: !Ref Bucket
-      USER_NAME_PREFIX: !Ref USER_NAME_PREFIX
+      USER_NAME_PREFIX: !Ref UserNamePrefix
