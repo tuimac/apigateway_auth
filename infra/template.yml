@@ -166,7 +166,7 @@ Resources:
       RoleName: !Join
         - ''
         - - 'Admin_'
-          - !Ref NamePrefix
+          - !Ref UserNamePrefix
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -279,7 +279,7 @@ Resources:
               ID_PROVIDER_ID = os.environ.get('ID_PROVIDER_ID')
               USER_NAME = event['request']['userAttributes']['email']
               BUCKET_NAME = os.environ.get('BUCKET_NAME')
-              USER_NAME_PREFIX = os.environ.get('USER_NAME_PREFIX')
+              PREFIX = os.environ.get('PREFIX')
               def create_s3_folder():
                 try:
                   path = USER_NAME + '/'
@@ -307,7 +307,7 @@ Resources:
                     ]
                   }      
 
-                  trust_relationship = {
+                  trust = {
                     "Version": "2012-10-17",
                     "Statement": [
                       {
@@ -328,25 +328,25 @@ Resources:
                     ]
                   }
 
-                  trust_relationship['Statement'][0]['Condition']['StringEquals']['cognito-identity.amazonaws.com:aud'] = ID_PROVIDER_ID
+                  trust['Statement'][0]['Condition']['StringEquals']['cognito-identity.amazonaws.com:aud'] = ID_PROVIDER_ID
                   policy = json.dumps(policy)
-                  trust_relationship = json.dumps(trust_relationship)
+                  trust = json.dumps(trust)
 
                   iam = boto3.client('iam')
                   policy_arn = iam.create_policy(
-                    PolicyName = USER_NAME + '_' + USER_NAME_PREFIX,
+                    PolicyName = USER_NAME + '_' + PREFIX,
                     PolicyDocument = policy
                   )['Policy']['Arn']
 
                   role_arn = iam.create_role(
-                    RoleName = USER_NAME + '_' + USER_NAME_PREFIX,
-                    AssumeRolePolicyDocument = trust_relationship,
+                    RoleName = USER_NAME + '_' + PREFIX,
+                    AssumeRolePolicyDocument = trust,
                   )['Role']['Arn']
 
                   time.sleep(5)
                   
                   iam.attach_role_policy(
-                    RoleName = USER_NAME + '_' + USER_NAME_PREFIX,
+                    RoleName = USER_NAME + '_' + PREFIX,
                     PolicyArn = policy_arn
                   )
 
@@ -381,7 +381,7 @@ Resources:
                   s3 = boto3.client('s3')
                   iam = boto3.client('iam')
                   policy = json.loads(s3.get_bucket_policy(Bucket=BUCKET_NAME)['Policy'])
-                  role_arn = iam.get_role(RoleName=(USER_NAME + '_' + USER_NAME_PREFIX))['Role']['Arn']
+                  role_arn = iam.get_role(RoleName=(USER_NAME + '_' + PREFIX))['Role']['Arn']
                   added_policy = {
                     'Effect': 'Allow',
                     'Principal': role_arn,
@@ -434,12 +434,12 @@ Resources:
             response = {}
             try:
               if event['RequestType'] == 'Delete':
-                USER_NAME_PREFIX = os.environ.get('USER_NAME_PREFIX')
+                PREFIX = os.environ.get('PREFIX')
                 def delete_iam():
                   try:
                     iam = boto3.client('iam')
                     for role in iam.list_roles()['Roles']:
-                      if USER_NAME_PREFIX in role['RoleName']:
+                      if PREFIX in role['RoleName']:
                         for policy in iam.list_policies()['Policies']:
                           if role['RoleName'] == policy['PolicyName']:
                             iam.detach_role_policy(RoleName=role['RoleName'], PolicyArn=policy['Arn'])
@@ -470,7 +470,7 @@ Resources:
                       'APP_CLIENT_ID': event['ResourceProperties']['APP_CLIENT_ID'],
                       'ID_PROVIDER_ID': event['ResourceProperties']['ID_PROVIDER_ID'],
                       'BUCKET_NAME': event['ResourceProperties']['BUCKET_NAME'],
-                      'USER_NAME_PREFIX': event['ResourceProperties']['USER_NAME_PREFIX']
+                      'PREFIX': event['ResourceProperties']['PREFIX']
                     }
                   }
                 )
@@ -511,4 +511,4 @@ Resources:
       APP_CLIENT_ID: !Ref UserPoolClient
       ID_PROVIDER_ID: !Ref IdentityPool
       BUCKET_NAME: !Ref Bucket
-      USER_NAME_PREFIX: !Ref UserNamePrefix
+      PREFIX: !Ref UserNamePrefix
