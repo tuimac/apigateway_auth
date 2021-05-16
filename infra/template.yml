@@ -281,134 +281,122 @@ Resources:
               BUCKET_NAME = os.environ.get('BUCKET_NAME')
               PREFIX = os.environ.get('PREFIX')
               def create_s3_folder():
-                try:
-                  path = USER_NAME + '/'
-                  s3 = boto3.client('s3')
-                  s3.put_object(Bucket=BUCKET_NAME, Key=path)
-                  return 'arn:aws:s3:::' + BUCKET_NAME + '/' + path + '*'
-                except ClientError:
-                  pass
+                path = USER_NAME + '/'
+                s3 = boto3.client('s3')
+                s3.put_object(Bucket=BUCKET_NAME, Key=path)
+                return 'arn:aws:s3:::' + BUCKET_NAME + '/' + path + '*'
 
               def create_iam_role():
-                try:
-                  policy = {
-                    "Version": "2012-10-17",
-                    "Statement": [
-                      {
-                        "Effect": "Allow",
-                        "Action": [
-                          "s3:GetObject",
-                          "s3:List*",
-                          "s3:PutObject",
-                          "s3:DeleteObject"
-                        ],
-                        "Resource": "*"
-                      }
-                    ]
-                  }      
+                policy = {
+                  "Version": "2012-10-17",
+                  "Statement": [
+                    {
+                      "Effect": "Allow",
+                      "Action": [
+                        "s3:GetObject",
+                        "s3:List*",
+                        "s3:PutObject",
+                        "s3:DeleteObject"
+                      ],
+                      "Resource": "*"
+                    }
+                  ]
+                }      
 
-                  trust = {
-                    "Version": "2012-10-17",
-                    "Statement": [
-                      {
-                        "Effect": "Allow",
-                        "Principal": {
-                          "Federated": "cognito-identity.amazonaws.com"
+                trust = {
+                  "Version": "2012-10-17",
+                  "Statement": [
+                    {
+                      "Effect": "Allow",
+                      "Principal": {
+                        "Federated": "cognito-identity.amazonaws.com"
+                      },
+                      "Action": "sts:AssumeRoleWithWebIdentity",
+                      "Condition": {
+                        "StringEquals": {
+                          "cognito-identity.amazonaws.com:aud": ""
                         },
-                        "Action": "sts:AssumeRoleWithWebIdentity",
-                        "Condition": {
-                          "StringEquals": {
-                            "cognito-identity.amazonaws.com:aud": ""
-                          },
-                          "ForAnyValue:StringLike": {
-                            "cognito-identity.amazonaws.com:amr": "authenticated"
-                          }
+                        "ForAnyValue:StringLike": {
+                          "cognito-identity.amazonaws.com:amr": "authenticated"
                         }
                       }
-                    ]
-                  }
+                    }
+                  ]
+                }
 
-                  trust['Statement'][0]['Condition']['StringEquals']['cognito-identity.amazonaws.com:aud'] = ID_PROVIDER_ID
-                  policy = json.dumps(policy)
-                  trust = json.dumps(trust)
+                trust['Statement'][0]['Condition']['StringEquals']['cognito-identity.amazonaws.com:aud'] = ID_PROVIDER_ID
+                policy = json.dumps(policy)
+                trust = json.dumps(trust)
 
-                  iam = boto3.client('iam')
-                  policy_arn = iam.create_policy(
-                    PolicyName = USER_NAME + '_' + PREFIX,
-                    PolicyDocument = policy
-                  )['Policy']['Arn']
+                iam = boto3.client('iam')
+                policy_arn = iam.create_policy(
+                  PolicyName = USER_NAME + '_' + PREFIX,
+                  PolicyDocument = policy
+                )['Policy']['Arn']
 
-                  role_arn = iam.create_role(
-                    RoleName = USER_NAME + '_' + PREFIX,
-                    AssumeRolePolicyDocument = trust,
-                  )['Role']['Arn']
+                role_arn = iam.create_role(
+                  RoleName = USER_NAME + '_' + PREFIX,
+                  AssumeRolePolicyDocument = trust,
+                )['Role']['Arn']
 
-                  time.sleep(5)
-                  
-                  iam.attach_role_policy(
-                    RoleName = USER_NAME + '_' + PREFIX,
-                    PolicyArn = policy_arn
-                  )
+                time.sleep(5)
+                
+                iam.attach_role_policy(
+                  RoleName = USER_NAME + '_' + PREFIX,
+                  PolicyArn = policy_arn
+                )
 
-                  return role_arn
-                except ClientError:
-                  pass
+                return role_arn
 
               def create_group(iam_role_arn):
-                try:
-                  cognito = boto3.client('cognito-idp')
-                  response = cognito.create_group(
-                    GroupName = USER_NAME,
-                    UserPoolId = USER_POOL_ID,
-                    RoleArn = iam_role_arn
-                  )
-                except ClientError:
-                  pass
+                cognito = boto3.client('cognito-idp')
+                response = cognito.create_group(
+                  GroupName = USER_NAME,
+                  UserPoolId = USER_POOL_ID,
+                  RoleArn = iam_role_arn
+                )
 
               def add_user_to_group():
-                try:
-                  cognito = boto3.client('cognito-idp')
-                  response = cognito.admin_add_user_to_group(
-                    UserPoolId = USER_POOL_ID,
-                    Username = USER_NAME,
-                    GroupName = USER_NAME
-                  )
-                except ClientError:
-                  pass
+                cognito = boto3.client('cognito-idp')
+                response = cognito.admin_add_user_to_group(
+                  UserPoolId = USER_POOL_ID,
+                  Username = USER_NAME,
+                  GroupName = USER_NAME
+                )
 
               def modify_bucket_policy(bucket_key_arn):
-                try:
-                  s3 = boto3.client('s3')
-                  iam = boto3.client('iam')
-                  policy = json.loads(s3.get_bucket_policy(Bucket=BUCKET_NAME)['Policy'])
-                  role_arn = iam.get_role(RoleName=(USER_NAME + '_' + PREFIX))['Role']['Arn']
-                  added_policy = {
-                    'Effect': 'Allow',
-                    'Principal': role_arn,
-                    'Action': [
-                      's3:GetObject',
-                      's3:List*',
-                      's3:PutObject',
-                      's3:DeleteObject'
-                    ],
-                    'Resource': bucket_key_arn
-                  }
-                  policy['Statement'].append(added_policy)
-                  s3.put_bucket_policy(
-                    Bucket = BUCKET_NAME,
-                    Policy = json.dumps(policy)
-                  )
-                except ClientError:
-                  pass
+                s3 = boto3.client('s3')
+                iam = boto3.client('iam')
+                policy = json.loads(s3.get_bucket_policy(Bucket=BUCKET_NAME)['Policy'])
+                role_arn = iam.get_role(RoleName=(USER_NAME + '_' + PREFIX))['Role']['Arn']
+                added_policy = {
+                  'Effect': 'Allow',
+                  'Principal': role_arn,
+                  'Action': [
+                    's3:GetObject',
+                    's3:List*',
+                    's3:PutObject',
+                    's3:DeleteObject'
+                  ],
+                  'Resource': bucket_key_arn
+                }
+                policy['Statement'].append(added_policy)
+                s3.put_bucket_policy(
+                  Bucket = BUCKET_NAME,
+                  Policy = json.dumps(policy)
+                )
               bucket_key_arn = create_s3_folder()
               iam_role_arn = create_iam_role()
               create_group(iam_role_arn)
               add_user_to_group()
               modify_bucket_policy(bucket_key_arn)
+              return event
             except ClientError:
               traceback.print_exc()
+              return event
             except:
               traceback.print_exc()
+              return event
       Runtime: python3.8
       Timeout: 900
       Handler: index.handler
@@ -429,25 +417,33 @@ Resources:
           import cfnresponse
           import boto3
           import os
+          import time
           from botocore.exceptions import ClientError
           def handler(event, context):
             response = {}
             try:
               if event['RequestType'] == 'Delete':
-                PREFIX = os.environ.get('PREFIX')
+                PREFIX = event['ResourceProperties']['PREFIX']
+                BUCKET_NAME = event['ResourceProperties']['BUCKET_NAME']
                 def delete_iam():
-                  try:
-                    iam = boto3.client('iam')
-                    for role in iam.list_roles()['Roles']:
-                      if PREFIX in role['RoleName']:
-                        for policy in iam.list_policies()['Policies']:
-                          if role['RoleName'] == policy['PolicyName']:
+                  iam = boto3.client('iam')
+                  for role in iam.list_roles()['Roles']:
+                    if PREFIX in role['RoleName']:
+                      for policy in iam.list_policies()['Policies']:
+                        if role['RoleName'] == policy['PolicyName']:
+                          try:
                             iam.detach_role_policy(RoleName=role['RoleName'], PolicyArn=policy['Arn'])
-                            time.sleep(3)
+                          except ClientError:
+                            pass
+                          time.sleep(3)
+                          try:
                             iam.delete_policy(PolicyArn=policy['Arn'])
+                          except ClientError:
+                            pass
+                          try:
                             iam.delete_role(RoleName=role['RoleName'])
-                  except ClientError:
-                    pass
+                          except ClientError:
+                            pass
 
                 def delete_s3_objects():
                   try:
@@ -456,7 +452,6 @@ Resources:
                     bucket.objects.all().delete()
                   except ClientError:
                     pass
-                
                 delete_iam()
                 delete_s3_objects()        
                 cfnresponse.send(event, context, cfnresponse.SUCCESS, response)
@@ -484,7 +479,7 @@ Resources:
               response['Exception'] = traceback.format_exc()
               cfnresponse.send(event, context, cfnresponse.FAILED, response)
               return
-      Runtime: python2.7
+      Runtime: python3.6
       Timeout: 900
       Handler: index.handler
       MemorySize: 128
