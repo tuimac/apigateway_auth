@@ -32,7 +32,7 @@ Resources:
       EmailVerificationSubject: Verified by code
       EmailVerificationMessage: Your verification code is {####}
       LambdaConfig:
-        PreSignUp: !GetAtt PreSignedLambda.Arn
+        PostConfirmation: !GetAtt PostConfirmationLambda.Arn
       Policies:
         PasswordPolicy:
           MinimumLength: 8
@@ -186,6 +186,7 @@ Resources:
   # S3 Bucket
   Bucket:
     Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
     Properties:
       BucketName: !Ref S3BucketName
       BucketEncryption:
@@ -249,9 +250,7 @@ Resources:
                   - "iam:ListRoles"
                   - "cognito-idp:CreateGroup"
                   - "cognito-idp:AdminAddUserToGroup"
-                  - "s3:PutObject"
-                  - "s3:PutBucketPolicy"
-                  - "s3:GetBucketPolicy"
+                  - "s3:*"
                   - "lambda:UpdateFunctionConfiguration"
                   - "logs:*"
                   - "kms:*"
@@ -261,7 +260,7 @@ Resources:
         - Key: !Ref NameTagKey
           Value: !Ref NameTagValue
 
-  PreSignedLambda:
+  PostConfirmationLambda:
     Type: AWS::Lambda::Function
     Properties:
       Code:
@@ -402,7 +401,7 @@ Resources:
       Handler: index.handler
       MemorySize: 128
       Role: !GetAtt CognitoS3LambdaRole.Arn
-      FunctionName: PreSignedLambda
+      FunctionName: PostConfirmationLambda
       Tags:
         - Key: !Ref NameTagKey
           Value: !Ref NameTagValue
@@ -450,8 +449,10 @@ Resources:
                     s3 = boto3.resource('s3')
                     bucket = s3.Bucket(BUCKET_NAME)
                     bucket.objects.all().delete()
-                  except ClientError:
-                    pass
+                    client = boto3.client('s3')
+                    client.delete_bucket(Bucket=BUCKET_NAME)
+                  except ClientError as e:
+                    raise e
                 delete_iam()
                 delete_s3_objects()        
                 cfnresponse.send(event, context, cfnresponse.SUCCESS, response)
@@ -489,19 +490,20 @@ Resources:
         - Key: !Ref NameTagKey
           Value: !Ref NameTagValue
 
-  PreSignedLambdaPermission:
+  PostConfirmationLambdaPermission:
     Type: AWS::Lambda::Permission
     Properties:
       Action: 'lambda:InvokeFunction'
-      FunctionName: !GetAtt PreSignedLambda.Arn
+      FunctionName: !GetAtt PostConfirmationLambda.Arn
       Principal: cognito-idp.amazonaws.com
       SourceArn: !GetAtt UserPool.Arn
 
   DoSetup:
     Type: Custom::DoSetup
+    DependsOn: Bucket
     Properties:
       ServiceToken: !GetAtt SetupLambda.Arn
-      TargetLambdaArn: !GetAtt PreSignedLambda.Arn
+      TargetLambdaArn: !GetAtt PostConfirmationLambda.Arn
       USER_POOL_ID: !Ref UserPool
       APP_CLIENT_ID: !Ref UserPoolClient
       ID_PROVIDER_ID: !Ref IdentityPool
