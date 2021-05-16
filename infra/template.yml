@@ -490,6 +490,12 @@ Resources:
         - Key: !Ref NameTagKey
           Value: !Ref NameTagValue
 
+  PostConfrmationLambdaConfig:
+    Type: AWS::Lambda::EventInvokeConfig
+    Properties:
+      FunctionName: !GetAtt PostConfirmationLambda.Arn
+      MaximumRetryAttempts: 0
+
   PostConfirmationLambdaPermission:
     Type: AWS::Lambda::Permission
     Properties:
