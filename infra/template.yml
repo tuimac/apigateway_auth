@@ -490,17 +490,23 @@ Resources:
         - Key: !Ref NameTagKey
           Value: !Ref NameTagValue
 
-  PostConfrmationLambdaConfig:
+  PostConfirmationLambdaVersion:
+    Type: AWS::Lambda::Version
+    Properties:
+      FunctionName: !Ref PostConfirmationLambda
+
+  PostConfirmationLambdaConfig:
     Type: AWS::Lambda::EventInvokeConfig
     Properties:
-      FunctionName: !GetAtt PostConfirmationLambda.Arn
+      FunctionName: !Ref PostConfirmationLambda
       MaximumRetryAttempts: 0
+      Qualifier: !GetAtt PostConfirmationLambdaVersion.Version
 
   PostConfirmationLambdaPermission:
     Type: AWS::Lambda::Permission
     Properties:
       Action: 'lambda:InvokeFunction'
-      FunctionName: !GetAtt PostConfirmationLambda.Arn
+      FunctionName: !Ref PostConfirmationLambda
       Principal: cognito-idp.amazonaws.com
       SourceArn: !GetAtt UserPool.Arn
 
